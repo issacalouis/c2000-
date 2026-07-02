@@ -2,9 +2,9 @@
 #define HMI_DISPLAY_H
 
 /*
- * File: hmi_display.h
- * Description: HMI display rendering entry points.
- * Notes: Rendering is intentionally separated from OLED transport code.
+ * 文件: hmi_display.h
+ * 说明: HMI 显示渲染入口。
+ * 备注: 渲染逻辑刻意与 OLED 传输代码分离。
  */
 
 #ifdef __cplusplus

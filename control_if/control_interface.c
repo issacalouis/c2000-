@@ -1,8 +1,8 @@
 /*
- * File: control_interface.c
- * Description: Shared setpoint and feedback storage for HMI/control exchange.
- * Notes: No blocking calls. On the target, protect multi-word updates if this
- *        module is accessed from both ISR and background contexts.
+ * 文件: control_interface.c
+ * 说明: 用于 HMI 与控制侧交换的共享设定值和反馈存储。
+ * 备注: 不包含阻塞调用。在目标平台上，如果该模块会被 ISR 和后台上下文
+ *       同时访问，需要对多字更新进行保护。
  */
 
 #include "control_interface.h"
@@ -14,10 +14,10 @@ static volatile Control_Setpoint_t g_controlif_setpoint;
 static volatile Control_Feedback_t g_controlif_feedback;
 
 /*
- * Function: ControlIF_Init
- * Call period: once during APP_Init().
- * ISR: allowed before interrupts start; avoid calling repeatedly from ISR.
- * Blocking: no.
+ * 函数: ControlIF_Init
+ * 调用周期: 在 APP_Init() 期间调用一次。
+ * ISR: 在中断开启前允许调用；避免在 ISR 中重复调用。
+ * 阻塞: 否。
  */
 void ControlIF_Init(void)
 {
@@ -35,10 +35,10 @@ void ControlIF_Init(void)
 }
 
 /*
- * Function: ControlIF_SetSetpoint
- * Call period: low-speed HMI task, after user parameters change.
- * ISR: not recommended because multi-field writes are not atomic on all C2000s.
- * Blocking: no.
+ * 函数: ControlIF_SetSetpoint
+ * 调用周期: 低速 HMI 任务中，在用户参数变化后调用。
+ * ISR: 不推荐，因为并非所有 C2000 上的多字段写入都是原子的。
+ * 阻塞: 否。
  */
 void ControlIF_SetSetpoint(const Control_Setpoint_t *setpoint)
 {
@@ -51,11 +51,11 @@ void ControlIF_SetSetpoint(const Control_Setpoint_t *setpoint)
 }
 
 /*
- * Function: ControlIF_GetSetpoint
- * Call period: control step or generated-code wrapper.
- * ISR: allowed; add a critical section if the application needs a coherent
- *      multi-field snapshot during concurrent HMI writes.
- * Blocking: no.
+ * 函数: ControlIF_GetSetpoint
+ * 调用周期: 控制步进函数或生成代码封装层中调用。
+ * ISR: 允许；如果应用需要在 HMI 并发写入期间获取一致的多字段快照，
+ *      应增加临界区保护。
+ * 阻塞: 否。
  */
 void ControlIF_GetSetpoint(Control_Setpoint_t *setpoint)
 {
@@ -68,10 +68,10 @@ void ControlIF_GetSetpoint(Control_Setpoint_t *setpoint)
 }
 
 /*
- * Function: ControlIF_SetFeedback
- * Call period: control ISR after ADC/control/PWM update.
- * ISR: allowed.
- * Blocking: no.
+ * 函数: ControlIF_SetFeedback
+ * 调用周期: 控制 ISR 中，在 ADC/控制/PWM 更新后调用。
+ * ISR: 允许。
+ * 阻塞: 否。
  */
 void ControlIF_SetFeedback(const Control_Feedback_t *feedback)
 {
@@ -84,10 +84,10 @@ void ControlIF_SetFeedback(const Control_Feedback_t *feedback)
 }
 
 /*
- * Function: ControlIF_GetFeedback
- * Call period: low-speed HMI display task.
- * ISR: not needed.
- * Blocking: no.
+ * 函数: ControlIF_GetFeedback
+ * 调用周期: 低速 HMI 显示任务中调用。
+ * ISR: 不需要。
+ * 阻塞: 否。
  */
 void ControlIF_GetFeedback(Control_Feedback_t *feedback)
 {

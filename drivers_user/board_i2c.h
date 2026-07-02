@@ -2,9 +2,9 @@
 #define BOARD_I2C_H
 
 /*
- * File: board_i2c.h
- * Description: Board-level I2C write abstraction for OLED or other peripherals.
- * Notes: The HMI layer must not call C2000 I2C registers directly.
+ * 文件: board_i2c.h
+ * 说明: 面向 OLED 或其他外设的板级 I2C 写入抽象。
+ * 备注: HMI 层不应直接访问 C2000 的 I2C 寄存器。
  */
 
 #include <stdint.h>

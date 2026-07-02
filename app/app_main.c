@@ -1,7 +1,7 @@
 /*
- * File: app_main.c
- * Description: Non-blocking application scheduler for C2000 HMI background work.
- * Notes: The control ISR must remain separate from this low-speed HMI scheduler.
+ * 文件: app_main.c
+ * 说明: 用于 C2000 HMI 后台任务的非阻塞应用调度器。
+ * 备注: 控制 ISR 必须与该低速 HMI 调度器保持分离。
  */
 
 #include "app_main.h"
@@ -17,10 +17,10 @@ static volatile uint16_t g_app_task_10ms_flag = 0u;
 static volatile uint16_t g_app_task_100ms_flag = 0u;
 
 /*
- * Function: APP_Init
- * Call period: once after clock/GPIO/peripheral base initialization.
- * ISR: no.
- * Blocking: no.
+ * 函数: APP_Init
+ * 调用周期: 时钟/GPIO/外设基础初始化完成后调用一次。
+ * ISR: 否。
+ * 阻塞: 否。
  */
 void APP_Init(void)
 {
@@ -29,10 +29,10 @@ void APP_Init(void)
 }
 
 /*
- * Function: APP_TaskScheduler_1ms_ISR
- * Call period: every 1 ms from a timer ISR or a generated scheduler tick.
- * ISR: allowed. It only sets flags and does not scan keys or refresh display.
- * Blocking: no.
+ * 函数: APP_TaskScheduler_1ms_ISR
+ * 调用周期: 每 1 ms 由定时器 ISR 或生成的调度节拍调用一次。
+ * ISR: 允许。该函数只置位标志，不进行按键扫描或显示刷新。
+ * 阻塞: 否。
  */
 void APP_TaskScheduler_1ms_ISR(void)
 {
@@ -58,10 +58,10 @@ void APP_TaskScheduler_1ms_ISR(void)
 }
 
 /*
- * Function: APP_BackgroundLoop
- * Call period: repeatedly from main while(1).
- * ISR: no. This function runs slow HMI tasks.
- * Blocking: no.
+ * 函数: APP_BackgroundLoop
+ * 调用周期: 在 main 的 while(1) 中循环调用。
+ * ISR: 否。该函数运行低速 HMI 任务。
+ * 阻塞: 否。
  */
 void APP_BackgroundLoop(void)
 {

@@ -2,10 +2,10 @@
 #define APP_CONFIG_H
 
 /*
- * File: app_config.h
- * Description: Global configuration for the C2000 power HMI template.
- * Notes: Keep user limits here so HMI, tests, and generated-control glue share
- *        the same safe parameter range.
+ * 文件: app_config.h
+ * 说明: C2000 电源 HMI 模板的全局配置。
+ * 备注: 将用户限制统一放在这里，便于 HMI、测试和生成控制代码的胶水层
+ *       共享同一套安全参数范围。
  */
 
 #define APP_VREF_DEFAULT        12.0f
@@ -22,7 +22,7 @@
 #define APP_MENU_TASK_20MS      20u
 #define APP_DISPLAY_TASK_100MS  100u
 
-/* Long press timing is counted in Key_Task_10ms() ticks. */
+/* 长按计时以 Key_Task_10ms() 的调用节拍为单位。 */
 #define APP_KEY_LONG_PRESS_TICKS 80u
 
 #endif

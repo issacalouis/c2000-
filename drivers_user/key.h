@@ -2,9 +2,9 @@
 #define KEY_H
 
 /*
- * File: key.h
- * Description: Non-blocking key event scanner interface.
- * Notes: The key module emits events only; menu logic decides their meaning.
+ * 文件: key.h
+ * 说明: 非阻塞按键事件扫描接口。
+ * 备注: 按键模块只产生事件；事件含义由菜单逻辑决定。
  */
 
 #include <stdint.h>

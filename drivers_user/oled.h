@@ -2,9 +2,9 @@
 #define OLED_H
 
 /*
- * File: oled.h
- * Description: SSD1306-style OLED abstraction used by HMI display rendering.
- * Notes: Default target is 128x64 over I2C. Transport details stay in board_i2c.
+ * 文件: oled.h
+ * 说明: 供 HMI 显示渲染使用的 SSD1306 风格 OLED 抽象。
+ * 备注: 默认目标为通过 I2C 连接的 128x64 OLED，传输细节保留在 board_i2c 中。
  */
 
 #include <stdint.h>

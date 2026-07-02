@@ -1,7 +1,7 @@
 /*
- * File: hmi_param.c
- * Description: Central HMI data model with setpoint clamping.
- * Notes: No hardware access and no blocking calls are used here.
+ * 文件: hmi_param.c
+ * 说明: 带设定值限幅功能的 HMI 核心数据模型。
+ * 备注: 这里不访问硬件，也不包含阻塞调用。
  */
 
 #include "hmi_param.h"
@@ -27,10 +27,10 @@ static float HMI_Param_Clamp(float value, float min_value, float max_value)
 }
 
 /*
- * Function: HMI_Param_Init
- * Call period: once from HMI_Init().
- * ISR: no.
- * Blocking: no.
+ * 函数: HMI_Param_Init
+ * 调用周期: 在 HMI_Init() 中调用一次。
+ * ISR: 否。
+ * 阻塞: 否。
  */
 void HMI_Param_Init(void)
 {

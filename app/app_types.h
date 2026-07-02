@@ -2,9 +2,9 @@
 #define APP_TYPES_H
 
 /*
- * File: app_types.h
- * Description: Shared application-level constants and lightweight types.
- * Notes: This file intentionally has no hardware dependency.
+ * 文件: app_types.h
+ * 说明: 共享的应用层常量和轻量类型定义。
+ * 备注: 本文件刻意不依赖任何硬件。
  */
 
 #include <stdint.h>

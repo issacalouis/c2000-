@@ -2,9 +2,9 @@
 #define BOARD_GPIO_H
 
 /*
- * File: board_gpio.h
- * Description: Board-level GPIO abstraction for keys and matrix keyboard rows.
- * Notes: Replace the TODO stubs in board_gpio.c with C2000Ware GPIO calls.
+ * 文件: board_gpio.h
+ * 说明: 面向按键与矩阵键盘行线的板级 GPIO 抽象。
+ * 备注: 需要用 C2000Ware 的 GPIO 调用替换 board_gpio.c 中的 TODO 桩代码。
  */
 
 #include <stdint.h>

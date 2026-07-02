@@ -1,8 +1,7 @@
 /*
- * File: oled_font.c
- * Description: Minimal font-table placeholder for early project integration.
- * Notes: Replace with a complete 6x8 ASCII font when implementing real SSD1306
- *        framebuffer rendering.
+ * 文件: oled_font.c
+ * 说明: 用于项目早期集成的最小字模表占位实现。
+ * 备注: 在实现真实 SSD1306 帧缓冲渲染时，请替换为完整的 6x8 ASCII 字模。
  */
 
 #include "oled_font.h"

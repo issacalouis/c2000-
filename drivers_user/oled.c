@@ -1,8 +1,8 @@
 /*
- * File: oled.c
- * Description: Text-mode OLED abstraction with SSD1306 I2C transport hook.
- * Notes: This template stores 8 text rows. Replace OLED_Update() with a real
- *        framebuffer transfer when the display hardware is finalized.
+ * 文件: oled.c
+ * 说明: 带 SSD1306 I2C 传输钩子的文本模式 OLED 抽象。
+ * 备注: 本模板维护 8 行文本缓存。待显示硬件方案确定后，
+ *       请将 OLED_Update() 替换为真实的帧缓冲传输实现。
  */
 
 #include "oled.h"
@@ -44,26 +44,26 @@ static void OLED_WriteText(uint8_t x, uint8_t y, const char *str)
 }
 
 /*
- * Function: OLED_Init
- * Call period: once from HMI_Init().
- * ISR: no.
- * Blocking: no in this template.
+ * 函数: OLED_Init
+ * 调用周期: 在 HMI_Init() 中调用一次。
+ * ISR: 否。
+ * 阻塞: 在本模板中为否。
  */
 void OLED_Init(void)
 {
     BoardI2C_Init();
     OLED_Clear();
     /*
-     * TODO(SSD1306): send init command sequence for 128x64 display over I2C.
-     * Keep this outside the control ISR and keep any wait bounded.
+     * TODO(SSD1306): 通过 I2C 发送 128x64 显示器初始化命令序列。
+     * 该流程应放在控制 ISR 之外，且任何等待时间都必须有上界。
      */
 }
 
 /*
- * Function: OLED_Clear
- * Call period: before rendering a page.
- * ISR: no.
- * Blocking: no.
+ * 函数: OLED_Clear
+ * 调用周期: 在渲染页面前调用。
+ * ISR: 否。
+ * 阻塞: 否。
  */
 void OLED_Clear(void)
 {
@@ -77,17 +77,16 @@ void OLED_Clear(void)
 }
 
 /*
- * Function: OLED_Update
- * Call period: 100 ms display task.
- * ISR: no.
- * Blocking: target implementation should be bounded or asynchronous.
+ * 函数: OLED_Update
+ * 调用周期: 100 ms 显示任务中调用。
+ * ISR: 否。
+ * 阻塞: 目标实现应为有界执行时间或异步方式。
  */
 void OLED_Update(void)
 {
     /*
-     * TODO(SSD1306): convert text buffer to pixels and call BoardI2C_Write().
-     * The call below is a harmless placeholder so the transport symbol remains
-     * linked in early integration builds.
+     * TODO(SSD1306): 将文本缓存转换为像素数据，并调用 BoardI2C_Write()。
+     * 下面的调用只是无害的占位实现，用于在早期集成构建中保留传输符号链接。
      */
     BoardI2C_Write(OLED_I2C_ADDR, (const uint8_t *)0, 0u);
 }

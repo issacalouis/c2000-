@@ -1,7 +1,7 @@
 /*
- * File: key_scan_test.c
- * Description: PC mock test for key debounce and long-press event generation.
- * Notes: Compile with -DUNIT_TEST. No C2000 hardware is required.
+ * 文件: key_scan_test.c
+ * 说明: 用于按键消抖和长按事件生成的 PC mock 测试。
+ * 备注: 需使用 -DUNIT_TEST 编译；不依赖 C2000 硬件。
  */
 
 #include <assert.h>

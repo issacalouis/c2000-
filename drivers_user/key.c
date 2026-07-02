@@ -1,7 +1,7 @@
 /*
- * File: key.c
- * Description: Debounced short/long press event scanner for the matrix keypad.
- * Notes: Call every 10 ms from the background scheduler. No blocking delay is used.
+ * 文件: key.c
+ * 说明: 面向矩阵键盘的消抖短按/长按事件扫描器。
+ * 备注: 需由后台调度器每 10 ms 调用一次；不使用阻塞延时。
  */
 
 #include "key.h"
@@ -161,10 +161,10 @@ static void Key_StoreEvent(KeyEvent_t event)
 }
 
 /*
- * Function: Key_Init
- * Call period: once from HMI_Init().
- * ISR: no.
- * Blocking: no.
+ * 函数: Key_Init
+ * 调用周期: 在 HMI_Init() 中调用一次。
+ * ISR: 否。
+ * 阻塞: 否。
  */
 void Key_Init(void)
 {
@@ -179,10 +179,10 @@ void Key_Init(void)
 }
 
 /*
- * Function: Key_Task_10ms
- * Call period: exactly every 10 ms for predictable debounce and long-press timing.
- * ISR: no, because matrix scanning can touch several GPIOs.
- * Blocking: no.
+ * 函数: Key_Task_10ms
+ * 调用周期: 必须严格每 10 ms 调用一次，以保证消抖和长按计时可预测。
+ * ISR: 否，因为矩阵扫描可能访问多个 GPIO。
+ * 阻塞: 否。
  */
 void Key_Task_10ms(void)
 {
@@ -252,10 +252,10 @@ void Key_Task_10ms(void)
 }
 
 /*
- * Function: Key_GetEvent
- * Call period: after Key_Task_10ms().
- * ISR: no.
- * Blocking: no.
+ * 函数: Key_GetEvent
+ * 调用周期: 在 Key_Task_10ms() 之后调用。
+ * ISR: 否。
+ * 阻塞: 否。
  */
 KeyEvent_t Key_GetEvent(void)
 {

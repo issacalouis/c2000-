@@ -2,9 +2,9 @@
 #define BOARD_SPI_H
 
 /*
- * File: board_spi.h
- * Description: Board-level SPI abstraction reserved for TFT/OLED SPI variants.
- * Notes: Current default display is SSD1306 over I2C.
+ * 文件: board_spi.h
+ * 说明: 预留给 TFT/OLED SPI 变体的板级 SPI 抽象。
+ * 备注: 当前默认显示设备为通过 I2C 连接的 SSD1306。
  */
 
 #include <stdint.h>

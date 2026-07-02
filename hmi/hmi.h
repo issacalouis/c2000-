@@ -2,10 +2,10 @@
 #define HMI_H
 
 /*
- * File: hmi.h
- * Description: Public HMI API used by app code and generated-control glue.
- * Notes: The HMI API exchanges data through stable functions, not through
- *        generated Simulink internal variables.
+ * 文件: hmi.h
+ * 说明: 供应用代码和生成控制胶水层使用的公开 HMI API。
+ * 备注: HMI API 应通过稳定的函数接口交换数据，而不是直接依赖
+ *       Simulink 生成的内部变量。
  */
 
 #include <stdint.h>

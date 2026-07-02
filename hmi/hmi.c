@@ -1,8 +1,7 @@
 /*
- * File: hmi.c
- * Description: HMI top-level scheduler glue for key, menu, display, and ControlIF.
- * Notes: All tasks are non-blocking. Do not call display/key tasks from the
- *        high-speed control ISR.
+ * 文件: hmi.c
+ * 说明: 用于按键、菜单、显示和 ControlIF 的 HMI 顶层调度粘合层。
+ * 备注: 所有任务都应为非阻塞方式。不要在高速控制 ISR 中调用显示或按键任务。
  */
 
 #include "hmi.h"
@@ -40,10 +39,10 @@ static void HMI_PullFeedbackFromControlIF(void)
 }
 
 /*
- * Function: HMI_Init
- * Call period: once during APP_Init().
- * ISR: no.
- * Blocking: no.
+ * 函数: HMI_Init
+ * 调用周期: 在 APP_Init() 期间调用一次。
+ * ISR: 否。
+ * 阻塞: 否。
  */
 void HMI_Init(void)
 {
@@ -56,21 +55,21 @@ void HMI_Init(void)
 }
 
 /*
- * Function: HMI_Task_1ms
- * Call period: 1 ms background task.
- * ISR: no; APP_TaskScheduler_1ms_ISR only sets a flag.
- * Blocking: no.
+ * 函数: HMI_Task_1ms
+ * 调用周期: 1 ms 后台任务。
+ * ISR: 否；APP_TaskScheduler_1ms_ISR 只负责置位标志。
+ * 阻塞: 否。
  */
 void HMI_Task_1ms(void)
 {
-    /* Reserved for future non-blocking timers. Keep heavy work out of 1 ms. */
+    /* 预留给未来的非阻塞定时处理。重负载工作不要放在 1 ms 任务中。 */
 }
 
 /*
- * Function: HMI_Task_10ms
- * Call period: 10 ms background task.
- * ISR: no, because it scans keys and updates menu state.
- * Blocking: no.
+ * 函数: HMI_Task_10ms
+ * 调用周期: 10 ms 后台任务。
+ * ISR: 否，因为该任务会扫描按键并更新菜单状态。
+ * 阻塞: 否。
  */
 void HMI_Task_10ms(void)
 {
@@ -96,10 +95,10 @@ void HMI_Task_10ms(void)
 }
 
 /*
- * Function: HMI_Task_100ms
- * Call period: 100 ms background task.
- * ISR: no, because it formats display data and refreshes OLED.
- * Blocking: no at this layer; target driver must also remain non-blocking.
+ * 函数: HMI_Task_100ms
+ * 调用周期: 100 ms 后台任务。
+ * ISR: 否，因为该任务会格式化显示数据并刷新 OLED。
+ * 阻塞: 在本层为否；目标驱动也必须保持非阻塞。
  */
 void HMI_Task_100ms(void)
 {

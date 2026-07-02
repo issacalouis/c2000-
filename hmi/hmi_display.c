@@ -1,7 +1,7 @@
 /*
- * File: hmi_display.c
- * Description: Page renderer for the 128x64 OLED abstraction.
- * Notes: String formatting is done only in the 100 ms low-speed task.
+ * 文件: hmi_display.c
+ * 说明: 面向 128x64 OLED 抽象层的页面渲染器。
+ * 备注: 字符串格式化仅在 100 ms 低速任务中执行。
  */
 
 #include "hmi_display.h"
@@ -99,10 +99,10 @@ static void HMI_Display_ShowFault(const HMI_Data_t *data)
 }
 
 /*
- * Function: HMI_Display_Init
- * Call period: once from HMI_Init().
- * ISR: no.
- * Blocking: no at this abstraction layer.
+ * 函数: HMI_Display_Init
+ * 调用周期: 在 HMI_Init() 中调用一次。
+ * ISR: 否。
+ * 阻塞: 在该抽象层中为否。
  */
 void HMI_Display_Init(void)
 {
@@ -111,10 +111,10 @@ void HMI_Display_Init(void)
 }
 
 /*
- * Function: HMI_Display_Task_100ms
- * Call period: 100 ms background task.
- * ISR: no, because it formats text and may trigger display transport.
- * Blocking: no at this layer; board transport should be implemented non-blocking.
+ * 函数: HMI_Display_Task_100ms
+ * 调用周期: 100 ms 后台任务。
+ * ISR: 否，因为该任务会格式化文本并可能触发显示传输。
+ * 阻塞: 在本层为否；板级传输应实现为非阻塞方式。
  */
 void HMI_Display_Task_100ms(void)
 {

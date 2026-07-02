@@ -1,7 +1,7 @@
 /*
- * File: hmi_mock_test.c
- * Description: PC mock test for HMI defaults, key-driven setpoint update, and display refresh.
- * Notes: Compile with -DUNIT_TEST. It uses board and OLED mock hooks only.
+ * 文件: hmi_mock_test.c
+ * 说明: 用于 HMI 默认值、按键驱动设定值更新和显示刷新的 PC mock 测试。
+ * 备注: 需使用 -DUNIT_TEST 编译；仅使用板级和 OLED 的 mock 钩子。
  */
 
 #include <assert.h>

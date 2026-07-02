@@ -2,9 +2,9 @@
 #define HMI_MENU_H
 
 /*
- * File: hmi_menu.h
- * Description: Key-driven menu state machine interface.
- * Notes: Menu code interprets key events; key drivers only report events.
+ * 文件: hmi_menu.h
+ * 说明: 由按键驱动的菜单状态机接口。
+ * 备注: 菜单代码负责解释按键事件；按键驱动只负责上报事件。
  */
 
 #include <stdint.h>

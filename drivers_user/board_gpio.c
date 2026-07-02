@@ -1,8 +1,8 @@
 /*
- * File: board_gpio.c
- * Description: Hardware isolation layer for C2000 GPIO key inputs.
- * Notes: Default implementation is a safe stub. Fill TODOs with F280015x pin
- *        mapping and C2000Ware GPIO_readPin/GPIO_writePin calls.
+ * 文件: board_gpio.c
+ * 说明: 针对 C2000 GPIO 按键输入的硬件隔离层。
+ * 备注: 默认实现为安全桩代码。请用 F280015x 引脚映射和
+ *       C2000Ware GPIO_readPin/GPIO_writePin 调用补全 TODO。
  */
 
 #include "board_gpio.h"
@@ -20,16 +20,16 @@ static uint16_t g_board_gpio_mock_matrix_mask;
 static uint8_t g_board_gpio_active_matrix_row;
 
 /*
- * Function: BoardGPIO_Init
- * Call period: once before key scanning starts.
- * ISR: no.
- * Blocking: no.
+ * 函数: BoardGPIO_Init
+ * 调用周期: 按键扫描开始前调用一次。
+ * ISR: 否。
+ * 阻塞: 否。
  */
 void BoardGPIO_Init(void)
 {
     /*
-     * TODO(F280015x): configure independent key GPIOs as inputs with pull-ups,
-     * and configure matrix rows as outputs / columns as inputs.
+     * TODO(F280015x): 将独立按键 GPIO 配置为带上拉输入，
+     * 并将矩阵键盘的行配置为输出、列配置为输入。
      */
     g_board_gpio_active_matrix_row = 0u;
 }
@@ -70,15 +70,15 @@ uint16_t BoardGPIO_ReadKeyRun(void)
 }
 
 /*
- * Function: BoardGPIO_SetMatrixRow
- * Call period: inside Key_Task_10ms().
- * ISR: no.
- * Blocking: no; do not add delay here.
+ * 函数: BoardGPIO_SetMatrixRow
+ * 调用周期: 在 Key_Task_10ms() 内部调用。
+ * ISR: 否。
+ * 阻塞: 否；这里不要加入延时。
  */
 void BoardGPIO_SetMatrixRow(uint8_t row)
 {
     g_board_gpio_active_matrix_row = row;
-    /* TODO(F280015x): drive selected row active and other rows inactive. */
+    /* TODO(F280015x): 将选中的行驱动为有效电平，其余行驱动为无效电平。 */
 }
 
 uint16_t BoardGPIO_ReadMatrixColumn(uint8_t column)

@@ -1,7 +1,7 @@
 /*
- * File: hmi_menu.c
- * Description: Non-blocking menu state machine for setpoint and status pages.
- * Notes: Safe to test on PC. It performs no direct GPIO, OLED, or control access.
+ * 文件: hmi_menu.c
+ * 说明: 用于设定值页和状态页的非阻塞菜单状态机。
+ * 备注: 可安全在 PC 上测试；不直接访问 GPIO、OLED 或控制模块。
  */
 
 #include "hmi_menu.h"
@@ -66,10 +66,10 @@ static void HMI_Menu_AdjustCurrent(int16_t step)
 }
 
 /*
- * Function: HMI_Menu_Init
- * Call period: once from HMI_Init().
- * ISR: no.
- * Blocking: no.
+ * 函数: HMI_Menu_Init
+ * 调用周期: 在 HMI_Init() 中调用一次。
+ * ISR: 否。
+ * 阻塞: 否。
  */
 void HMI_Menu_Init(void)
 {
@@ -78,10 +78,10 @@ void HMI_Menu_Init(void)
 }
 
 /*
- * Function: HMI_Menu_Task_20ms
- * Call period: every 20 ms after one or more Key_Task_10ms() scans.
- * ISR: no.
- * Blocking: no.
+ * 函数: HMI_Menu_Task_20ms
+ * 调用周期: 每经过一次或多次 Key_Task_10ms() 扫描后，每 20 ms 调用一次。
+ * ISR: 否。
+ * 阻塞: 否。
  */
 void HMI_Menu_Task_20ms(KeyEvent_t event)
 {

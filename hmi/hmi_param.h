@@ -2,9 +2,9 @@
 #define HMI_PARAM_H
 
 /*
- * File: hmi_param.h
- * Description: HMI parameter storage and range-limited accessors.
- * Notes: HMI parameters are separated from generated control internals.
+ * 文件: hmi_param.h
+ * 说明: HMI 参数存储及带范围限制的访问接口。
+ * 备注: HMI 参数与生成控制内部变量保持分离。
  */
 
 #include <stdint.h>
