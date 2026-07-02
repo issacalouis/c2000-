@@ -39,6 +39,7 @@ static void HMI_Menu_PreviousPage(void)
 static void HMI_Menu_AdjustCurrent(int16_t step)
 {
     float small_step;
+    uint16_t mode_cmd;
 
     small_step = (float)step;
 
@@ -57,7 +58,16 @@ static void HMI_Menu_AdjustCurrent(int16_t step)
         break;
 
     case HMI_MENU_PAGE_SET_MODE:
-        HMI_Param_SetModeCmd((uint16_t)((HMI_Param_GetModeCmd() + 1u) & 0x0003u));
+        mode_cmd = HMI_Param_GetModeCmd();
+        if (step > 0)
+        {
+            mode_cmd = (uint16_t)((mode_cmd + 1u) & 0x0003u);
+        }
+        else if (step < 0)
+        {
+            mode_cmd = (uint16_t)((mode_cmd - 1u) & 0x0003u);
+        }
+        HMI_Param_SetModeCmd(mode_cmd);
         break;
 
     default:

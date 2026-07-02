@@ -5,7 +5,7 @@
 ```text
 app/                 应用初始化、全局配置、后台任务调度
 hmi/                 HMI 顶层任务、菜单、参数模型、显示页面
-drivers_user/        GPIO、I2C、SPI、按键、OLED 等用户驱动抽象
+drivers_user/        GPIO、I2C、按键、OLED 等用户驱动抽象
 control_if/          HMI 与控制算法之间的数据交换接口
 generated_control/   预留给 Simulink / Embedded Coder 生成代码
 docs/                架构、移植、Simulink 集成、ISR 模板文档
@@ -46,8 +46,6 @@ tests/               PC 端 mock 测试
 - `drivers_user/oled_font.h`：声明字库表。
 - `drivers_user/board_i2c.c`：I2C 传输占位层，待实现 C2000Ware I2C 初始化和发送。
 - `drivers_user/board_i2c.h`：声明 I2C 初始化和写接口。
-- `drivers_user/board_spi.c`：SPI 传输占位层，预留给 SPI OLED/TFT。
-- `drivers_user/board_spi.h`：声明 SPI 初始化和写接口。
 
 ### control_if
 
@@ -63,7 +61,7 @@ tests/               PC 端 mock 测试
 
 - `app`：只负责初始化顺序和低速任务调度，不处理具体菜单、显示或控制算法。
 - `hmi`：负责人机交互逻辑，不直接操作 C2000 寄存器。
-- `drivers_user`：集中封装板级 GPIO/I2C/SPI/OLED/按键差异。
+- `drivers_user`：集中封装板级 GPIO/I2C/OLED/按键差异。
 - `control_if`：是 HMI 与控制算法之间唯一共享数据接口。
 - `generated_control`：仅放自动生成的控制算法代码，不放手写 HMI 逻辑。
 - `tests`：只用于 PC mock 验证，不依赖真实 C2000 硬件。
@@ -157,7 +155,7 @@ while (1)
 
 ## 10. 是否直接操作 C2000 寄存器
 
-当前源码没有直接操作 C2000 寄存器，也没有包含 C2000Ware 头文件。`board_gpio.c`、`board_i2c.c`、`board_spi.c` 中只有 `TODO(F280015x)` 占位注释。真实硬件移植时，寄存器或 C2000Ware 调用应集中放在这些 board 层文件中。
+当前源码没有直接操作 C2000 寄存器，也没有包含 C2000Ware 头文件。`board_gpio.c`、`board_i2c.c` 中只有 `TODO(F280015x)` 占位注释。真实硬件移植时，寄存器或 C2000Ware 调用应集中放在这些 board 层文件中。
 
 ## 11. OLED、按键、菜单、控制接口分别在哪里实现
 
@@ -177,7 +175,7 @@ while (1)
 - `docs/`：项目说明、移植记录、接口约定。
 - `tests/`：PC mock 测试。
 
-其中 `drivers_user/board_gpio.c`、`board_i2c.c`、`board_spi.c` 是移植到真实硬件时最需要修改的文件。
+其中 `drivers_user/board_gpio.c`、`board_i2c.c` 是移植到真实硬件时最需要修改的文件。
 
 ## 13. 哪些文件未来可能被 Simulink 生成代码替换
 
@@ -194,7 +192,7 @@ while (1)
 ## 14. 当前工程的潜在风险点
 
 - 缺少实际 `main.c`、CCS 工程文件、链接脚本和目标构建脚本，当前更像可集成模板。
-- GPIO/I2C/SPI 均为占位实现，尚不能直接驱动真实 C2000 硬件。
+- GPIO/I2C 均为占位实现，尚不能直接驱动真实 C2000 硬件。
 - OLED 目前只是文本缓存和空 I2C 写占位，未实现 SSD1306 初始化、显存转换和真实刷新。
 - `control_interface.c` 使用 `volatile` 结构体共享多字段数据，但没有临界区、双缓冲或版本号；ISR 与后台并发访问时可能读到不一致快照。
 - 矩阵键盘扫描配置为 4x4，但当前只映射 7 个功能键，未处理组合键、鬼键或二极管隔离策略。
@@ -217,4 +215,4 @@ gcc -DUNIT_TEST -Iapp -Ihmi -Idrivers_user -Icontrol_if tests/hmi_mock_test.c hm
 
 ### C2000 目标工程
 
-需要 TI C2000 编译器或兼容工具链、Code Composer Studio 或等效工程、C2000Ware、启动文件、链接脚本、中断向量、时钟和外设初始化代码。还需要补全 `TODO(F280015x)` 标记的 GPIO/I2C/SPI 实现，并将 Simulink 生成的控制算法源码放入 `generated_control/` 或外部工程中统一编译。
+需要 TI C2000 编译器或兼容工具链、Code Composer Studio 或等效工程、C2000Ware、启动文件、链接脚本、中断向量、时钟和外设初始化代码。还需要补全 `TODO(F280015x)` 标记的 GPIO/I2C 实现，并将 Simulink 生成的控制算法源码放入 `generated_control/` 或外部工程中统一编译。

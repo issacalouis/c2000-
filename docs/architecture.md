@@ -14,7 +14,7 @@ Simulink 控制算法 -> ControlIF feedback -> HMI 参数 -> OLED 页面刷新
 ## 模块边界
 
 - `hmi` 不直接访问 C2000 寄存器。
-- `drivers_user` 集中所有 GPIO/I2C/SPI 硬件差异。
+- `drivers_user` 集中所有 GPIO/I2C 硬件差异，以及按键和 OLED 驱动抽象。
 - `control_if` 是 HMI 与控制算法的唯一共享数据层。
 - `generated_control` 只保存自动生成代码，重新生成时不影响 HMI 模块。
 

@@ -37,7 +37,7 @@
 | 快速保护 | CMPSS / Trip Zone |
 | 按键输入 | GPIO |
 | 矩阵键盘 | GPIO 行列扫描 |
-| OLED 小屏 | I2C 或 SPI |
+| OLED 小屏 | I2C |
 
 
 本指导文件优先按照以下硬件方案设计：
@@ -227,8 +227,6 @@ C2000_Power_HMI_Project
 │   ├── board_gpio.h
 │   ├── board_i2c.c
 │   ├── board_i2c.h
-│   ├── board_spi.c
-│   └── board_spi.h
 │
 ├── control_if
 │   ├── control_interface.c
@@ -246,7 +244,7 @@ C2000_Power_HMI_Project
 
 - `generated_control` 用来放 Simulink 生成代码；
 - `hmi` 放人机交互逻辑；
-- `drivers_user` 放屏幕、键盘、GPIO、I2C、SPI 等底层驱动；
+- `drivers_user` 放屏幕、键盘、GPIO、I2C 等底层驱动；
 - `control_if` 放控制算法与 HMI 的接口；
 - `app` 放主程序调度；
 - `docs` 放说明文档；
@@ -388,9 +386,6 @@ KeyEvent_t Key_GetEvent(void);
 优先实现抽象接口，具体底层可适配：
 
 1. SSD1306 OLED，I2C；
-2. SSD1306 OLED，SPI；
-3. ST7735 TFT，SPI；
-4. ILI9341 TFT，SPI；
 5. 串口屏，SCI / UART。
 
 本项目默认先实现：
@@ -631,7 +626,6 @@ Source files：
 ../drivers_user/oled_font.c
 ../drivers_user/board_gpio.c
 ../drivers_user/board_i2c.c
-../drivers_user/board_spi.c
 ../control_if/control_interface.c
 ```
 
@@ -770,7 +764,6 @@ __interrupt void ControlISR(void)
 | App | `APP_` |
 | Board GPIO | `BoardGPIO_` |
 | Board I2C | `BoardI2C_` |
-| Board SPI | `BoardSPI_` |
 
 ---
 
@@ -804,7 +797,6 @@ __interrupt void ControlISR(void)
 ```c
 uint16_t BoardGPIO_ReadKeyUp(void);
 void BoardI2C_Write(uint8_t dev_addr, const uint8_t *data, uint16_t len);
-void BoardSPI_Write(const uint8_t *data, uint16_t len);
 ```
 
 不要在 HMI 菜单逻辑中直接写：
@@ -812,12 +804,11 @@ void BoardSPI_Write(const uint8_t *data, uint16_t len);
 ```c
 GPIO_readPin(12);
 I2C_putData(...);
-SPI_writeDataBlockingFIFO(...);
 ```
 
 原因：
 
-- 不同 C2000 型号 GPIO、I2C、SPI 配置可能不同；
+- 不同 C2000 型号 GPIO、I2C 配置可能不同；
 - 菜单逻辑应独立于硬件型号；
 - 后续换芯片时只需要改 board 层。
 

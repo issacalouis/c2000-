@@ -46,7 +46,6 @@ Source files:
 ../drivers_user/oled_font.c
 ../drivers_user/board_gpio.c
 ../drivers_user/board_i2c.c
-../drivers_user/board_spi.c
 ../control_if/control_interface.c
 ```
 

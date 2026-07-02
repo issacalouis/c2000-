@@ -8,9 +8,9 @@
 
 默认 OLED 地址为 `0x3C`，接口在 `drivers_user/oled.c` 和 `drivers_user/board_i2c.c`。真实项目中需要补充 SSD1306 初始化命令、显存格式转换和 I2C 发送实现。
 
-## 3. SPI 预留
+## 3. OLED I2C 通信
 
-`board_spi.c` 已预留 ST7735 / ILI9341 / SPI OLED 的传输接口。如果不用 SPI 显示，可保持空实现。
+当前工程默认并仅保留 SSD1306 OLED 的 I2C 通信路径，移植时只需补全 `board_i2c.c` 中的底层 I2C 初始化与写传输实现。
 
 ## 4. 临界区
 

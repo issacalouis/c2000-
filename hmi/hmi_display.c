@@ -40,6 +40,22 @@ static const char *HMI_Display_FaultText(uint16_t fault_code)
     return "No Fault";
 }
 
+static const char *HMI_Display_RunStateText(uint16_t run_state)
+{
+    switch (run_state)
+    {
+    case APP_RUN_STATE_RUN:
+        return "RUN";
+
+    case APP_RUN_STATE_FAULT:
+        return "FAULT";
+
+    case APP_RUN_STATE_STOP:
+    default:
+        return "STOP";
+    }
+}
+
 static void HMI_Display_ShowMain(const HMI_Data_t *data)
 {
     OLED_ShowString(0u, 0u, "Vin :");
@@ -59,7 +75,7 @@ static void HMI_Display_ShowMain(const HMI_Data_t *data)
     OLED_ShowString(88u, 3u, "%");
 
     OLED_ShowString(0u, 5u, (data->enable_cmd != 0u) ? "CMD: ON " : "CMD: OFF");
-    OLED_ShowString(72u, 5u, (data->run_state == APP_RUN_STATE_RUN) ? "RUN" : "STOP");
+    OLED_ShowString(72u, 5u, HMI_Display_RunStateText(data->run_state));
     OLED_ShowString(0u, 7u, HMI_Display_FaultText(data->fault_code));
 }
 
