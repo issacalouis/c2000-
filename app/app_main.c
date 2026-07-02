@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 #include "app_config.h"
+#include "board.h"
 #include "control_interface.h"
 #include "hmi.h"
 
@@ -24,6 +25,7 @@ static volatile uint16_t g_app_task_100ms_flag = 0u;
  */
 void APP_Init(void)
 {
+    Board_Init();
     ControlIF_Init();
     HMI_Init();
 }

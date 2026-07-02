@@ -2,9 +2,9 @@
 #define OLED_FONT_H
 
 /*
- * 文件: oled_font.h
- * 说明: 供 SSD1306 像素渲染使用的占位字模表接口。
- * 备注: 当前 OLED 模板使用文本缓存；后续实现真实像素渲染时可使用该字模表。
+ * File: oled_font.h
+ * Description: Compatibility font-table declaration. Current OLED rendering
+ *              uses the internal 5x7 font in oled.c.
  */
 
 #include <stdint.h>

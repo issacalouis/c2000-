@@ -11,8 +11,6 @@
 #include "hmi_display.h"
 #include "hmi_menu.h"
 #include "hmi_param.h"
-#include "key.h"
-#include "oled.h"
 
 static void HMI_PushSetpointToControlIF(void)
 {
@@ -47,8 +45,6 @@ static void HMI_PullFeedbackFromControlIF(void)
 void HMI_Init(void)
 {
     HMI_Param_Init();
-    Key_Init();
-    OLED_Init();
     HMI_Menu_Init();
     HMI_Display_Init();
     HMI_PushSetpointToControlIF();

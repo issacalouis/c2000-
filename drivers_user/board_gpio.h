@@ -2,9 +2,10 @@
 #define BOARD_GPIO_H
 
 /*
- * 文件: board_gpio.h
- * 说明: 面向按键与矩阵键盘行线的板级 GPIO 抽象。
- * 备注: 需要用 C2000Ware 的 GPIO 调用替换 board_gpio.c 中的 TODO 桩代码。
+ * File: board_gpio.h
+ * Description: Board-level GPIO abstraction for keys and matrix keyboard rows.
+ * Notes: Matrix GPIOs are low-active on LAUNCHXL-F2800157. Read functions
+ *        return logical state, not raw pin level: 1 means pressed, 0 released.
  */
 
 #include <stdint.h>

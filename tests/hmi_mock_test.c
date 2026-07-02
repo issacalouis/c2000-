@@ -10,11 +10,17 @@
 #include <string.h>
 
 #include "app_types.h"
+#include "board.h"
 #include "board_gpio.h"
 #include "control_interface.h"
 #include "hmi.h"
 #include "key.h"
 #include "oled.h"
+
+#define TEST_KEY_UP_MATRIX_MASK    (1u << 0u)
+#define TEST_KEY_RIGHT_MATRIX_MASK (1u << 3u)
+#define TEST_KEY_BACK_MATRIX_MASK  (1u << 11u)
+#define TEST_KEY_RUN_MATRIX_MASK   (1u << 15u)
 
 static void hmi_key_ticks(uint16_t mask, unsigned ticks)
 {
@@ -37,6 +43,7 @@ int main(void)
 {
     Control_Feedback_t feedback;
 
+    Board_Init();
     ControlIF_Init();
     HMI_Init();
 
@@ -44,14 +51,14 @@ int main(void)
     assert(fabs((double)(HMI_Get_Iref() - 2.0f)) < 0.001);
     assert(HMI_Get_EnableCmd() == 0u);
 
-    hmi_short_press(KEY_MASK_RIGHT);
-    hmi_short_press(KEY_MASK_UP);
+    hmi_short_press(TEST_KEY_RIGHT_MATRIX_MASK);
+    hmi_short_press(TEST_KEY_UP_MATRIX_MASK);
     assert(HMI_Get_Vref() > 12.05f);
 
-    hmi_short_press(KEY_MASK_RUN);
+    hmi_short_press(TEST_KEY_RUN_MATRIX_MASK);
     assert(HMI_Get_EnableCmd() == 1u);
 
-    hmi_short_press(KEY_MASK_BACK);
+    hmi_short_press(TEST_KEY_BACK_MATRIX_MASK);
 
     feedback.vin = 24.0f;
     feedback.vout = 12.5f;

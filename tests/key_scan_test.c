@@ -10,6 +10,9 @@
 #include "board_gpio.h"
 #include "key.h"
 
+#define TEST_KEY_UP_MATRIX_MASK  (1u << 0u)
+#define TEST_KEY_RUN_MATRIX_MASK (1u << 15u)
+
 static void scan_ticks(uint16_t mask, unsigned ticks)
 {
     unsigned i;
@@ -25,12 +28,12 @@ int main(void)
 {
     Key_Init();
 
-    scan_ticks(KEY_MASK_UP, 4u);
+    scan_ticks(TEST_KEY_UP_MATRIX_MASK, 4u);
     assert(Key_GetEvent() == KEY_EVENT_NONE);
     scan_ticks(0u, 4u);
     assert(Key_GetEvent() == KEY_EVENT_UP);
 
-    scan_ticks(KEY_MASK_RUN, 90u);
+    scan_ticks(TEST_KEY_RUN_MATRIX_MASK, 90u);
     assert(Key_GetEvent() == KEY_EVENT_LONG_RUN);
     scan_ticks(0u, 4u);
     assert(Key_GetEvent() == KEY_EVENT_NONE);

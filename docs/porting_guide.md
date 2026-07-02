@@ -1,25 +1,56 @@
-# F280015x 移植说明
+# F2800157 移植说明
 
-## 1. 引脚确认
+## 1. 引脚配置
 
-根据原理图确认矩阵键盘的行、列 GPIO 编号、上下拉方式和有效电平，然后修改 `drivers_user/board_gpio.c` 中的 `TODO(F280015x)`。
+当前工程已按 `LAUNCHXL-F2800157` 落地默认引脚，集中定义在 `drivers_user/board_pinmap.h`。
 
-## 2. I2C OLED
+- OLED I2C：`I2CA`
+- OLED SDA：`GPIO42`
+- OLED SCL：`GPIO43`
+- OLED 地址：`0x3C`，7-bit 地址
+- I2C 速率：`400 kHz`
+- 键盘行线：`GPIO25 / GPIO26 / GPIO27 / GPIO44`
+- 键盘列线：`GPIO45 / GPIO46 / GPIO48 / GPIO33`
 
-默认 OLED 地址为 `0x3C`，接口在 `drivers_user/oled.c` 和 `drivers_user/board_i2c.c`。真实项目中需要补充 SSD1306 初始化命令、显存格式转换和 I2C 发送实现。
+如原理图不同，优先修改 `board_pinmap.h`，再检查 `board_gpio.c` 和 `board_i2c.c` 是否需要同步调整。
 
-## 3. OLED I2C 通信
+## 2. 矩阵键盘
 
-当前工程默认并仅保留 SSD1306 OLED 的 I2C 通信路径，移植时只需补全 `board_i2c.c` 中的底层 I2C 初始化与写传输实现。
+键盘为 4x4 行扫描、列读取方案。列线使用上拉，低电平表示按下。`BoardGPIO_ReadMatrixColumn()` 返回逻辑按键状态：
 
-## 4. 临界区
+```text
+GPIO 读到 0 -> 返回 1，表示按下
+GPIO 读到 1 -> 返回 0，表示未按下
+```
 
-`ControlIF_SetFeedback()` 可能在控制 ISR 中调用，HMI 后台会读取反馈。若目标工程要求多字段严格一致，应在 `control_interface.c` 中加入 C2000 临界区保护或双缓冲快照。
+当前功能键映射为：
 
-## 5. 参数安全
+```text
+ROW0 COL0 = UP
+ROW0 COL1 = DOWN
+ROW0 COL2 = LEFT
+ROW0 COL3 = RIGHT
+ROW1 COL3 = OK
+ROW2 COL3 = BACK
+ROW3 COL3 = RUN
+```
 
-`app/app_config.h` 定义 Vref/Iref 默认值和上下限。后续增加新参数时，应先定义限幅，再在 `hmi_param.c` 中集中处理，避免菜单层直接写未限幅值。
+## 3. I2C OLED
 
-## 6. 禁止事项
+OLED 驱动位于 `drivers_user/oled.c`，底层 I2C 传输位于 `drivers_user/board_i2c.c`。当前实现包含 SSD1306 初始化、文本缓存、帧缓冲渲染和整屏刷新。
+
+`BoardI2C_Write()` 是阻塞轮询式传输，适合 100 ms HMI 显示任务，不应放入控制 ISR。
+
+## 4. 初始化顺序
+
+目标工程建议只从应用入口调用：
+
+```c
+APP_Init();
+```
+
+`APP_Init()` 内部会调用 `Board_Init()`，再初始化 `ControlIF` 和 HMI。不要在外部重复调用 `BoardGPIO_Init()`、`BoardI2C_Init()`、`Key_Init()` 或 `OLED_Init()`。
+
+## 5. 禁止事项
 
 不要在控制 ISR 中调用 `HMI_Task_10ms()`、`HMI_Task_100ms()`、`OLED_Update()`、`Key_Task_10ms()` 或任何阻塞延时。

@@ -8,10 +8,11 @@
 
 #include "app_config.h"
 #include "board_gpio.h"
+#include "board_pinmap.h"
 
 #define KEY_DEBOUNCE_TICKS 3u
-#define KEY_MATRIX_ROWS    4u
-#define KEY_MATRIX_COLS    4u
+#define KEY_MATRIX_ROWS    KEY_ROW_NUM
+#define KEY_MATRIX_COLS    KEY_COL_NUM
 
 typedef struct
 {
@@ -131,13 +132,13 @@ static uint16_t Key_ReadMatrixMask(void)
     }
 
     key_mask = 0u;
-    key_mask |= (matrix_mask & 0x0001u) != 0u ? KEY_MASK_UP : 0u;
-    key_mask |= (matrix_mask & 0x0002u) != 0u ? KEY_MASK_DOWN : 0u;
-    key_mask |= (matrix_mask & 0x0004u) != 0u ? KEY_MASK_LEFT : 0u;
-    key_mask |= (matrix_mask & 0x0008u) != 0u ? KEY_MASK_RIGHT : 0u;
-    key_mask |= (matrix_mask & 0x0010u) != 0u ? KEY_MASK_OK : 0u;
-    key_mask |= (matrix_mask & 0x0020u) != 0u ? KEY_MASK_BACK : 0u;
-    key_mask |= (matrix_mask & 0x0040u) != 0u ? KEY_MASK_RUN : 0u;
+    key_mask |= (matrix_mask & (1u << ((0u * KEY_MATRIX_COLS) + 0u))) != 0u ? KEY_MASK_UP : 0u;
+    key_mask |= (matrix_mask & (1u << ((0u * KEY_MATRIX_COLS) + 1u))) != 0u ? KEY_MASK_DOWN : 0u;
+    key_mask |= (matrix_mask & (1u << ((0u * KEY_MATRIX_COLS) + 2u))) != 0u ? KEY_MASK_LEFT : 0u;
+    key_mask |= (matrix_mask & (1u << ((0u * KEY_MATRIX_COLS) + 3u))) != 0u ? KEY_MASK_RIGHT : 0u;
+    key_mask |= (matrix_mask & (1u << ((1u * KEY_MATRIX_COLS) + 3u))) != 0u ? KEY_MASK_OK : 0u;
+    key_mask |= (matrix_mask & (1u << ((2u * KEY_MATRIX_COLS) + 3u))) != 0u ? KEY_MASK_BACK : 0u;
+    key_mask |= (matrix_mask & (1u << ((3u * KEY_MATRIX_COLS) + 3u))) != 0u ? KEY_MASK_RUN : 0u;
 
     return key_mask;
 }
@@ -168,7 +169,6 @@ static void Key_StoreEvent(KeyEvent_t event)
  */
 void Key_Init(void)
 {
-    BoardGPIO_Init();
     g_key_state.raw_last = 0u;
     g_key_state.stable = 0u;
     g_key_state.active_key = 0u;
