@@ -1,11 +1,12 @@
-/*
- * File: hmi.h
- * Description: Public HMI API for scheduler and generated control integration.
- * Notes: Init and task APIs are non-blocking. Do not call 10 ms/100 ms tasks
- *        from the high-speed control ISR.
- */
 #ifndef HMI_H
 #define HMI_H
+
+/*
+ * File: hmi.h
+ * Description: Public HMI API used by app code and generated-control glue.
+ * Notes: The HMI API exchanges data through stable functions, not through
+ *        generated Simulink internal variables.
+ */
 
 #include <stdint.h>
 

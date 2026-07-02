@@ -1,71 +1,100 @@
 /*
  * File: oled.c
- * Description: SSD1306-compatible OLED abstraction with portable text buffer.
- * Notes: TODO replace OLED_Update with actual I2C/SPI page transfer.
+ * Description: Text-mode OLED abstraction with SSD1306 I2C transport hook.
+ * Notes: This template stores 8 text rows. Replace OLED_Update() with a real
+ *        framebuffer transfer when the display hardware is finalized.
  */
+
 #include "oled.h"
-#include "board_i2c.h"
+
 #include <stdio.h>
 #include <string.h>
 
-#define OLED_TEXT_ROWS 8u
-#define OLED_TEXT_COLS 21u
-#define OLED_I2C_ADDR  0x3Cu
+#include "board_i2c.h"
 
-static char g_oled_text[OLED_TEXT_ROWS][OLED_TEXT_COLS + 1u];
+#define OLED_I2C_ADDR       0x3Cu
+#define OLED_TEXT_ROWS      8u
+#define OLED_TEXT_COLUMNS   21u
+#define OLED_TEXT_LINE_SIZE (OLED_TEXT_COLUMNS + 1u)
 
-static void OLED_PutText(uint8_t x, uint8_t y, const char *str)
+static char g_oled_text[OLED_TEXT_ROWS][OLED_TEXT_LINE_SIZE];
+
+static void OLED_WriteText(uint8_t x, uint8_t y, const char *str)
 {
-    uint8_t col;
-    uint8_t idx = 0u;
+    uint8_t column;
+    uint8_t index;
 
-    if ((y >= OLED_TEXT_ROWS) || (str == (const char *)0))
+    if ((y >= OLED_TEXT_ROWS) || (str == 0))
     {
         return;
     }
 
-    col = (uint8_t)(x / 6u);
-    while ((col < OLED_TEXT_COLS) && (str[idx] != '\0'))
+    column = (uint8_t)(x / 6u);
+    if (column >= OLED_TEXT_COLUMNS)
     {
-        g_oled_text[y][col] = str[idx];
-        col++;
-        idx++;
+        return;
+    }
+
+    index = 0u;
+    while ((str[index] != '\0') && ((uint8_t)(column + index) < OLED_TEXT_COLUMNS))
+    {
+        g_oled_text[y][column + index] = str[index];
+        index++;
     }
 }
 
+/*
+ * Function: OLED_Init
+ * Call period: once from HMI_Init().
+ * ISR: no.
+ * Blocking: no in this template.
+ */
 void OLED_Init(void)
 {
     BoardI2C_Init();
     OLED_Clear();
+    /*
+     * TODO(SSD1306): send init command sequence for 128x64 display over I2C.
+     * Keep this outside the control ISR and keep any wait bounded.
+     */
 }
 
+/*
+ * Function: OLED_Clear
+ * Call period: before rendering a page.
+ * ISR: no.
+ * Blocking: no.
+ */
 void OLED_Clear(void)
 {
     uint8_t row;
-    uint8_t col;
 
     for (row = 0u; row < OLED_TEXT_ROWS; row++)
     {
-        for (col = 0u; col < OLED_TEXT_COLS; col++)
-        {
-            g_oled_text[row][col] = ' ';
-        }
-        g_oled_text[row][OLED_TEXT_COLS] = '\0';
+        memset(g_oled_text[row], ' ', OLED_TEXT_COLUMNS);
+        g_oled_text[row][OLED_TEXT_COLUMNS] = '\0';
     }
 }
 
+/*
+ * Function: OLED_Update
+ * Call period: 100 ms display task.
+ * ISR: no.
+ * Blocking: target implementation should be bounded or asynchronous.
+ */
 void OLED_Update(void)
 {
     /*
-     * TODO: Convert g_oled_text or a graphic framebuffer into SSD1306 pages
-     * and send them through BoardI2C_Write(OLED_I2C_ADDR, data, len).
+     * TODO(SSD1306): convert text buffer to pixels and call BoardI2C_Write().
+     * The call below is a harmless placeholder so the transport symbol remains
+     * linked in early integration builds.
      */
-    (void)OLED_I2C_ADDR;
+    BoardI2C_Write(OLED_I2C_ADDR, (const uint8_t *)0, 0u);
 }
 
 void OLED_ShowString(uint8_t x, uint8_t y, const char *str)
 {
-    OLED_PutText(x, y, str);
+    OLED_WriteText(x, y, str);
 }
 
 void OLED_ShowInt(uint8_t x, uint8_t y, int32_t value)
@@ -73,7 +102,7 @@ void OLED_ShowInt(uint8_t x, uint8_t y, int32_t value)
     char text[16];
 
     (void)snprintf(text, sizeof(text), "%ld", (long)value);
-    OLED_PutText(x, y, text);
+    OLED_WriteText(x, y, text);
 }
 
 void OLED_ShowFloat(uint8_t x, uint8_t y, float value, uint8_t decimals)
@@ -86,5 +115,17 @@ void OLED_ShowFloat(uint8_t x, uint8_t y, float value, uint8_t decimals)
     }
 
     (void)snprintf(text, sizeof(text), "%.*f", (int)decimals, (double)value);
-    OLED_PutText(x, y, text);
+    OLED_WriteText(x, y, text);
 }
+
+#ifdef UNIT_TEST
+const char *OLED_MockGetLine(uint8_t y)
+{
+    if (y >= OLED_TEXT_ROWS)
+    {
+        return "";
+    }
+
+    return g_oled_text[y];
+}
+#endif

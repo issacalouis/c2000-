@@ -1,10 +1,12 @@
-/*
- * File: control_interface.h
- * Description: Stable data interface between HMI and generated control code.
- * Notes: Generated Simulink code should use this API instead of HMI internals.
- */
 #ifndef CONTROL_INTERFACE_H
 #define CONTROL_INTERFACE_H
+
+/*
+ * File: control_interface.h
+ * Description: Data exchange API between HMI code and generated control code.
+ * Notes: Simulink generated files should call this API instead of touching HMI
+ *        internals. The implementation is non-blocking.
+ */
 
 #include <stdint.h>
 

@@ -1,106 +1,108 @@
 /*
  * File: key.c
- * Description: Debounced short/long key event scanner.
- * Notes: Non-blocking 10 ms task; never access control variables here.
+ * Description: Debounced short/long press event scanner for independent keys or matrix keypad.
+ * Notes: Call every 10 ms from the background scheduler. No blocking delay is used.
  */
+
 #include "key.h"
+
 #include "app_config.h"
 #include "board_gpio.h"
 
-typedef enum
-{
-    KEY_ID_NONE = 0,
-    KEY_ID_UP,
-    KEY_ID_DOWN,
-    KEY_ID_LEFT,
-    KEY_ID_RIGHT,
-    KEY_ID_OK,
-    KEY_ID_BACK,
-    KEY_ID_RUN
-} KeyId_t;
+#define KEY_DEBOUNCE_TICKS 3u
+#define KEY_MATRIX_ROWS    4u
+#define KEY_MATRIX_COLS    4u
 
 typedef struct
 {
-    uint16_t raw_current;
     uint16_t raw_last;
     uint16_t stable;
+    uint16_t active_key;
     uint16_t debounce_ticks;
-    uint16_t press_ticks;
-    uint16_t long_reported;
-    KeyId_t active_key;
+    uint16_t long_ticks;
+    uint16_t long_sent;
     KeyEvent_t pending_event;
 } Key_State_t;
 
 static Key_State_t g_key_state;
 
-static uint16_t Key_MaskFromId(KeyId_t key)
+static uint16_t Key_FirstPressedMask(uint16_t mask)
 {
-    return (uint16_t)(1u << ((uint16_t)key - 1u));
+    static const uint16_t key_order[] =
+    {
+        KEY_MASK_UP,
+        KEY_MASK_DOWN,
+        KEY_MASK_LEFT,
+        KEY_MASK_RIGHT,
+        KEY_MASK_OK,
+        KEY_MASK_BACK,
+        KEY_MASK_RUN
+    };
+    uint16_t index;
+
+    for (index = 0u; index < (uint16_t)(sizeof(key_order) / sizeof(key_order[0])); index++)
+    {
+        if ((mask & key_order[index]) != 0u)
+        {
+            return key_order[index];
+        }
+    }
+
+    return 0u;
 }
 
-static KeyEvent_t Key_ShortEventFromId(KeyId_t key)
+static KeyEvent_t Key_ShortEventFromMask(uint16_t mask)
 {
-    switch (key)
+    switch (mask)
     {
-    case KEY_ID_UP: return KEY_EVENT_UP;
-    case KEY_ID_DOWN: return KEY_EVENT_DOWN;
-    case KEY_ID_LEFT: return KEY_EVENT_LEFT;
-    case KEY_ID_RIGHT: return KEY_EVENT_RIGHT;
-    case KEY_ID_OK: return KEY_EVENT_OK;
-    case KEY_ID_BACK: return KEY_EVENT_BACK;
-    case KEY_ID_RUN: return KEY_EVENT_RUN;
-    case KEY_ID_NONE:
-    default: return KEY_EVENT_NONE;
+    case KEY_MASK_UP:
+        return KEY_EVENT_UP;
+    case KEY_MASK_DOWN:
+        return KEY_EVENT_DOWN;
+    case KEY_MASK_LEFT:
+        return KEY_EVENT_LEFT;
+    case KEY_MASK_RIGHT:
+        return KEY_EVENT_RIGHT;
+    case KEY_MASK_OK:
+        return KEY_EVENT_OK;
+    case KEY_MASK_BACK:
+        return KEY_EVENT_BACK;
+    case KEY_MASK_RUN:
+        return KEY_EVENT_RUN;
+    default:
+        return KEY_EVENT_NONE;
     }
 }
 
-static KeyEvent_t Key_LongEventFromId(KeyId_t key)
+static KeyEvent_t Key_LongEventFromMask(uint16_t mask)
 {
-    switch (key)
+    switch (mask)
     {
-    case KEY_ID_UP: return KEY_EVENT_LONG_UP;
-    case KEY_ID_DOWN: return KEY_EVENT_LONG_DOWN;
-    case KEY_ID_OK: return KEY_EVENT_LONG_OK;
-    case KEY_ID_RUN: return KEY_EVENT_LONG_RUN;
-    case KEY_ID_LEFT:
-    case KEY_ID_RIGHT:
-    case KEY_ID_BACK:
-    case KEY_ID_NONE:
-    default: return KEY_EVENT_NONE;
-    }
-}
-
-static KeyId_t Key_FirstPressed(uint16_t mask)
-{
-    if ((mask & Key_MaskFromId(KEY_ID_UP)) != 0u) { return KEY_ID_UP; }
-    if ((mask & Key_MaskFromId(KEY_ID_DOWN)) != 0u) { return KEY_ID_DOWN; }
-    if ((mask & Key_MaskFromId(KEY_ID_LEFT)) != 0u) { return KEY_ID_LEFT; }
-    if ((mask & Key_MaskFromId(KEY_ID_RIGHT)) != 0u) { return KEY_ID_RIGHT; }
-    if ((mask & Key_MaskFromId(KEY_ID_OK)) != 0u) { return KEY_ID_OK; }
-    if ((mask & Key_MaskFromId(KEY_ID_BACK)) != 0u) { return KEY_ID_BACK; }
-    if ((mask & Key_MaskFromId(KEY_ID_RUN)) != 0u) { return KEY_ID_RUN; }
-    return KEY_ID_NONE;
-}
-
-static void Key_PushEvent(KeyEvent_t event)
-{
-    if ((event != KEY_EVENT_NONE) && (g_key_state.pending_event == KEY_EVENT_NONE))
-    {
-        g_key_state.pending_event = event;
+    case KEY_MASK_UP:
+        return KEY_EVENT_LONG_UP;
+    case KEY_MASK_DOWN:
+        return KEY_EVENT_LONG_DOWN;
+    case KEY_MASK_OK:
+        return KEY_EVENT_LONG_OK;
+    case KEY_MASK_RUN:
+        return KEY_EVENT_LONG_RUN;
+    default:
+        return KEY_EVENT_NONE;
     }
 }
 
 static uint16_t Key_ReadIndependentMask(void)
 {
-    uint16_t mask = 0u;
+    uint16_t mask;
 
-    if (BoardGPIO_ReadKeyUp() != BOARD_KEY_RELEASED) { mask |= Key_MaskFromId(KEY_ID_UP); }
-    if (BoardGPIO_ReadKeyDown() != BOARD_KEY_RELEASED) { mask |= Key_MaskFromId(KEY_ID_DOWN); }
-    if (BoardGPIO_ReadKeyLeft() != BOARD_KEY_RELEASED) { mask |= Key_MaskFromId(KEY_ID_LEFT); }
-    if (BoardGPIO_ReadKeyRight() != BOARD_KEY_RELEASED) { mask |= Key_MaskFromId(KEY_ID_RIGHT); }
-    if (BoardGPIO_ReadKeyOk() != BOARD_KEY_RELEASED) { mask |= Key_MaskFromId(KEY_ID_OK); }
-    if (BoardGPIO_ReadKeyBack() != BOARD_KEY_RELEASED) { mask |= Key_MaskFromId(KEY_ID_BACK); }
-    if (BoardGPIO_ReadKeyRun() != BOARD_KEY_RELEASED) { mask |= Key_MaskFromId(KEY_ID_RUN); }
+    mask = 0u;
+    mask |= (BoardGPIO_ReadKeyUp() != 0u) ? KEY_MASK_UP : 0u;
+    mask |= (BoardGPIO_ReadKeyDown() != 0u) ? KEY_MASK_DOWN : 0u;
+    mask |= (BoardGPIO_ReadKeyLeft() != 0u) ? KEY_MASK_LEFT : 0u;
+    mask |= (BoardGPIO_ReadKeyRight() != 0u) ? KEY_MASK_RIGHT : 0u;
+    mask |= (BoardGPIO_ReadKeyOk() != 0u) ? KEY_MASK_OK : 0u;
+    mask |= (BoardGPIO_ReadKeyBack() != 0u) ? KEY_MASK_BACK : 0u;
+    mask |= (BoardGPIO_ReadKeyRun() != 0u) ? KEY_MASK_RUN : 0u;
 
     return mask;
 }
@@ -108,36 +110,34 @@ static uint16_t Key_ReadIndependentMask(void)
 #if (KEY_MODE == KEY_MODE_MATRIX)
 static uint16_t Key_ReadMatrixMask(void)
 {
-    static const KeyId_t map[4][4] =
-    {
-        { KEY_ID_UP, KEY_ID_DOWN, KEY_ID_LEFT, KEY_ID_RIGHT },
-        { KEY_ID_OK, KEY_ID_BACK, KEY_ID_RUN, KEY_ID_NONE },
-        { KEY_ID_NONE, KEY_ID_NONE, KEY_ID_NONE, KEY_ID_NONE },
-        { KEY_ID_NONE, KEY_ID_NONE, KEY_ID_NONE, KEY_ID_NONE }
-    };
     uint16_t row;
-    uint16_t col;
-    uint16_t mask = 0u;
+    uint16_t column;
+    uint16_t matrix_mask;
+    uint16_t key_mask;
 
-    for (row = 0u; row < 4u; row++)
+    matrix_mask = 0u;
+    for (row = 0u; row < KEY_MATRIX_ROWS; row++)
     {
-        BoardGPIO_SetMatrixRow(row, 1u);
-
-        for (col = 0u; col < 4u; col++)
+        BoardGPIO_SetMatrixRow((uint8_t)row);
+        for (column = 0u; column < KEY_MATRIX_COLS; column++)
         {
-            if (BoardGPIO_ReadMatrixColumn(col) != BOARD_KEY_RELEASED)
+            if (BoardGPIO_ReadMatrixColumn((uint8_t)column) != 0u)
             {
-                if (map[row][col] != KEY_ID_NONE)
-                {
-                    mask |= Key_MaskFromId(map[row][col]);
-                }
+                matrix_mask |= (uint16_t)(1u << ((row * KEY_MATRIX_COLS) + column));
             }
         }
-
-        BoardGPIO_SetMatrixRow(row, 0u);
     }
 
-    return mask;
+    key_mask = 0u;
+    key_mask |= (matrix_mask & 0x0001u) != 0u ? KEY_MASK_UP : 0u;
+    key_mask |= (matrix_mask & 0x0002u) != 0u ? KEY_MASK_DOWN : 0u;
+    key_mask |= (matrix_mask & 0x0004u) != 0u ? KEY_MASK_LEFT : 0u;
+    key_mask |= (matrix_mask & 0x0008u) != 0u ? KEY_MASK_RIGHT : 0u;
+    key_mask |= (matrix_mask & 0x0010u) != 0u ? KEY_MASK_OK : 0u;
+    key_mask |= (matrix_mask & 0x0020u) != 0u ? KEY_MASK_BACK : 0u;
+    key_mask |= (matrix_mask & 0x0040u) != 0u ? KEY_MASK_RUN : 0u;
+
+    return key_mask;
 }
 #endif
 
@@ -150,28 +150,47 @@ static uint16_t Key_ReadMask(void)
 #endif
 }
 
+static void Key_StoreEvent(KeyEvent_t event)
+{
+    if ((event != KEY_EVENT_NONE) && (g_key_state.pending_event == KEY_EVENT_NONE))
+    {
+        g_key_state.pending_event = event;
+    }
+}
+
+/*
+ * Function: Key_Init
+ * Call period: once from HMI_Init().
+ * ISR: no.
+ * Blocking: no.
+ */
 void Key_Init(void)
 {
     BoardGPIO_Init();
-
-    g_key_state.raw_current = 0u;
     g_key_state.raw_last = 0u;
     g_key_state.stable = 0u;
+    g_key_state.active_key = 0u;
     g_key_state.debounce_ticks = 0u;
-    g_key_state.press_ticks = 0u;
-    g_key_state.long_reported = 0u;
-    g_key_state.active_key = KEY_ID_NONE;
+    g_key_state.long_ticks = 0u;
+    g_key_state.long_sent = 0u;
     g_key_state.pending_event = KEY_EVENT_NONE;
 }
 
+/*
+ * Function: Key_Task_10ms
+ * Call period: exactly every 10 ms for predictable debounce and long-press timing.
+ * ISR: no, because matrix scanning can touch several GPIOs.
+ * Blocking: no.
+ */
 void Key_Task_10ms(void)
 {
-    KeyId_t key;
-    KeyEvent_t long_event;
+    uint16_t raw;
+    uint16_t next_stable;
+    uint16_t previous_active;
 
-    g_key_state.raw_current = Key_ReadMask();
+    raw = Key_FirstPressedMask(Key_ReadMask());
 
-    if (g_key_state.raw_current == g_key_state.raw_last)
+    if (raw == g_key_state.raw_last)
     {
         if (g_key_state.debounce_ticks < KEY_DEBOUNCE_TICKS)
         {
@@ -180,8 +199,8 @@ void Key_Task_10ms(void)
     }
     else
     {
+        g_key_state.raw_last = raw;
         g_key_state.debounce_ticks = 0u;
-        g_key_state.raw_last = g_key_state.raw_current;
     }
 
     if (g_key_state.debounce_ticks < KEY_DEBOUNCE_TICKS)
@@ -189,49 +208,58 @@ void Key_Task_10ms(void)
         return;
     }
 
-    if (g_key_state.stable != g_key_state.raw_current)
+    next_stable = raw;
+    if (next_stable == g_key_state.stable)
     {
-        if ((g_key_state.stable != 0u) && (g_key_state.raw_current == 0u))
+        if (g_key_state.active_key != 0u && g_key_state.long_sent == 0u)
         {
-            if (g_key_state.long_reported == 0u)
+            if (g_key_state.long_ticks < APP_KEY_LONG_PRESS_TICKS)
             {
-                Key_PushEvent(Key_ShortEventFromId(g_key_state.active_key));
+                g_key_state.long_ticks++;
             }
-            g_key_state.press_ticks = 0u;
-            g_key_state.long_reported = 0u;
-            g_key_state.active_key = KEY_ID_NONE;
-        }
-        else if ((g_key_state.stable == 0u) && (g_key_state.raw_current != 0u))
-        {
-            g_key_state.active_key = Key_FirstPressed(g_key_state.raw_current);
-            g_key_state.press_ticks = 0u;
-            g_key_state.long_reported = 0u;
-        }
 
-        g_key_state.stable = g_key_state.raw_current;
+            if (g_key_state.long_ticks >= APP_KEY_LONG_PRESS_TICKS)
+            {
+                Key_StoreEvent(Key_LongEventFromMask(g_key_state.active_key));
+                g_key_state.long_sent = 1u;
+            }
+        }
+        return;
     }
 
-    key = g_key_state.active_key;
-    if ((key != KEY_ID_NONE) && (g_key_state.stable != 0u))
+    previous_active = g_key_state.active_key;
+    g_key_state.stable = next_stable;
+
+    if (next_stable != 0u)
     {
-        if (g_key_state.press_ticks < 0xFFFFu)
+        g_key_state.active_key = next_stable;
+        g_key_state.long_ticks = 0u;
+        g_key_state.long_sent = 0u;
+    }
+    else
+    {
+        if ((previous_active != 0u) && (g_key_state.long_sent == 0u))
         {
-            g_key_state.press_ticks++;
+            Key_StoreEvent(Key_ShortEventFromMask(previous_active));
         }
 
-        if ((g_key_state.press_ticks >= KEY_LONG_TICKS) && (g_key_state.long_reported == 0u))
-        {
-            long_event = Key_LongEventFromId(key);
-            Key_PushEvent(long_event);
-            g_key_state.long_reported = 1u;
-        }
+        g_key_state.active_key = 0u;
+        g_key_state.long_ticks = 0u;
+        g_key_state.long_sent = 0u;
     }
 }
 
+/*
+ * Function: Key_GetEvent
+ * Call period: after Key_Task_10ms().
+ * ISR: no.
+ * Blocking: no.
+ */
 KeyEvent_t Key_GetEvent(void)
 {
-    KeyEvent_t event = g_key_state.pending_event;
+    KeyEvent_t event;
 
+    event = g_key_state.pending_event;
     g_key_state.pending_event = KEY_EVENT_NONE;
     return event;
 }

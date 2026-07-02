@@ -1,18 +1,21 @@
 /*
  * File: key_scan_test.c
- * Description: PC-side key debounce and short/long event smoke test.
- * Notes: Build with key.c, board_gpio.c, app_config.h and -DUNIT_TEST.
+ * Description: PC mock test for key debounce and long-press event generation.
+ * Notes: Compile with -DUNIT_TEST. No C2000 hardware is required.
  */
-#include "key.h"
-#include "board_gpio.h"
-#include "app_config.h"
+
 #include <assert.h>
+#include <stdio.h>
 
-static void RunTicks(unsigned int count)
+#include "board_gpio.h"
+#include "key.h"
+
+static void scan_ticks(uint16_t mask, unsigned ticks)
 {
-    unsigned int i;
+    unsigned i;
 
-    for (i = 0u; i < count; i++)
+    BoardGPIO_MockSetIndependentMask(mask);
+    for (i = 0u; i < ticks; i++)
     {
         Key_Task_10ms();
     }
@@ -21,55 +24,17 @@ static void RunTicks(unsigned int count)
 int main(void)
 {
     Key_Init();
-    BoardGPIO_MockSetIndependent(BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED);
-    RunTicks(5u);
-    assert(Key_GetEvent() == KEY_EVENT_NONE);
 
-    BoardGPIO_MockSetIndependent(BOARD_KEY_PRESSED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED);
-    RunTicks(5u);
+    scan_ticks(KEY_MASK_UP, 4u);
     assert(Key_GetEvent() == KEY_EVENT_NONE);
-
-    BoardGPIO_MockSetIndependent(BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED);
-    RunTicks(5u);
+    scan_ticks(0u, 4u);
     assert(Key_GetEvent() == KEY_EVENT_UP);
 
-    BoardGPIO_MockSetIndependent(BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_PRESSED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED);
-    RunTicks(KEY_LONG_TICKS + 5u);
-    assert(Key_GetEvent() == KEY_EVENT_LONG_OK);
-
-    BoardGPIO_MockSetIndependent(BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED,
-                                 BOARD_KEY_RELEASED);
-    RunTicks(5u);
+    scan_ticks(KEY_MASK_RUN, 90u);
+    assert(Key_GetEvent() == KEY_EVENT_LONG_RUN);
+    scan_ticks(0u, 4u);
     assert(Key_GetEvent() == KEY_EVENT_NONE);
 
+    printf("key_scan_test passed\n");
     return 0;
 }

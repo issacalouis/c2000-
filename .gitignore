@@ -1,7 +1,11 @@
-*.exe
-*.obj
 *.o
+*.obj
+*.exe
 *.out
 *.map
 *.log
 build/
+Debug/
+Release/
+.vscode/
+.idea/

@@ -1,12 +1,28 @@
-/*
- * File: key.h
- * Description: Non-blocking key scanner event API.
- * Notes: Call Key_Task_10ms every 10 ms. The module emits events only.
- */
 #ifndef KEY_H
 #define KEY_H
 
+/*
+ * File: key.h
+ * Description: Non-blocking key event scanner interface.
+ * Notes: The key module emits events only; menu logic decides their meaning.
+ */
+
 #include <stdint.h>
+
+#define KEY_MODE_INDEPENDENT 0
+#define KEY_MODE_MATRIX      1
+
+#ifndef KEY_MODE
+#define KEY_MODE KEY_MODE_INDEPENDENT
+#endif
+
+#define KEY_MASK_UP    0x0001u
+#define KEY_MASK_DOWN  0x0002u
+#define KEY_MASK_LEFT  0x0004u
+#define KEY_MASK_RIGHT 0x0008u
+#define KEY_MASK_OK    0x0010u
+#define KEY_MASK_BACK  0x0020u
+#define KEY_MASK_RUN   0x0040u
 
 #ifdef __cplusplus
 extern "C" {

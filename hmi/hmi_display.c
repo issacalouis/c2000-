@@ -1,90 +1,153 @@
 /*
  * File: hmi_display.c
- * Description: Low-speed HMI page rendering through the OLED abstraction.
- * Notes: Formatting and display update happen only in the 100 ms task.
+ * Description: Page renderer for the 128x64 OLED abstraction.
+ * Notes: String formatting is done only in the 100 ms low-speed task.
  */
+
 #include "hmi_display.h"
+
+#include "app_types.h"
 #include "hmi_menu.h"
 #include "hmi_param.h"
 #include "oled.h"
 
-static void HMIDisplay_ShowMain(const HMI_Data_t *data)
+static const char *HMI_Display_FaultText(uint16_t fault_code)
+{
+    if ((fault_code & FAULT_OVP) != 0u)
+    {
+        return "OVP";
+    }
+    if ((fault_code & FAULT_OCP) != 0u)
+    {
+        return "OCP";
+    }
+    if ((fault_code & FAULT_OTP) != 0u)
+    {
+        return "OTP";
+    }
+    if ((fault_code & FAULT_UVLO) != 0u)
+    {
+        return "UVLO";
+    }
+    if ((fault_code & FAULT_ADC) != 0u)
+    {
+        return "ADC Fault";
+    }
+    if ((fault_code & FAULT_PWM) != 0u)
+    {
+        return "PWM Fault";
+    }
+    return "No Fault";
+}
+
+static void HMI_Display_ShowMain(const HMI_Data_t *data)
 {
     OLED_ShowString(0u, 0u, "Vin :");
     OLED_ShowFloat(42u, 0u, data->vin, 1u);
-    OLED_ShowString(86u, 0u, "V");
+    OLED_ShowString(88u, 0u, "V");
 
     OLED_ShowString(0u, 1u, "Vout:");
     OLED_ShowFloat(42u, 1u, data->vout, 1u);
-    OLED_ShowString(86u, 1u, "V");
+    OLED_ShowString(88u, 1u, "V");
 
     OLED_ShowString(0u, 2u, "Iout:");
     OLED_ShowFloat(42u, 2u, data->iout, 2u);
-    OLED_ShowString(86u, 2u, "A");
+    OLED_ShowString(88u, 2u, "A");
 
     OLED_ShowString(0u, 3u, "Duty:");
     OLED_ShowFloat(42u, 3u, data->duty, 1u);
-    OLED_ShowString(86u, 3u, "%");
+    OLED_ShowString(88u, 3u, "%");
 
-    OLED_ShowString(0u, 5u, data->enable_cmd != 0u ? "CMD:ON " : "CMD:OFF");
-    OLED_ShowString(68u, 5u, HMIMenu_GetFaultText(data->fault_code));
+    OLED_ShowString(0u, 5u, (data->enable_cmd != 0u) ? "CMD: ON " : "CMD: OFF");
+    OLED_ShowString(72u, 5u, (data->run_state == APP_RUN_STATE_RUN) ? "RUN" : "STOP");
+    OLED_ShowString(0u, 7u, HMI_Display_FaultText(data->fault_code));
 }
 
-static void HMIDisplay_ShowSetFloat(const char *title, float value, const char *unit)
+static void HMI_Display_ShowSetValue(const char *title, float value, const char *unit)
 {
     OLED_ShowString(0u, 0u, title);
     OLED_ShowFloat(0u, 2u, value, 2u);
-    OLED_ShowString(56u, 2u, unit);
+    OLED_ShowString(64u, 2u, unit);
     OLED_ShowString(0u, 5u, "UP/DOWN Adjust");
-    OLED_ShowString(0u, 6u, "OK Next");
+    OLED_ShowString(0u, 7u, "OK Next");
 }
 
-void HMIDisplay_Init(void)
+static void HMI_Display_ShowEnable(const HMI_Data_t *data)
 {
-    OLED_Init();
+    OLED_ShowString(0u, 0u, "Set Enable");
+    OLED_ShowString(0u, 2u, (data->enable_cmd != 0u) ? "Output Request ON" : "Output Request OFF");
+    OLED_ShowString(0u, 5u, "UP/DOWN Toggle");
+    OLED_ShowString(0u, 7u, "RUN Toggle");
+}
+
+static void HMI_Display_ShowMode(const HMI_Data_t *data)
+{
+    OLED_ShowString(0u, 0u, "Set Mode");
+    OLED_ShowString(0u, 2u, "Mode:");
+    OLED_ShowInt(48u, 2u, (int32_t)data->mode_cmd);
+    OLED_ShowString(0u, 5u, "UP/DOWN Change");
+    OLED_ShowString(0u, 7u, "OK Next");
+}
+
+static void HMI_Display_ShowFault(const HMI_Data_t *data)
+{
+    OLED_ShowString(0u, 0u, "Fault");
+    OLED_ShowString(0u, 2u, HMI_Display_FaultText(data->fault_code));
+    OLED_ShowString(0u, 5u, "Code:");
+    OLED_ShowInt(48u, 5u, (int32_t)data->fault_code);
+    OLED_ShowString(0u, 7u, "BACK Main");
+}
+
+/*
+ * Function: HMI_Display_Init
+ * Call period: once from HMI_Init().
+ * ISR: no.
+ * Blocking: no at this abstraction layer.
+ */
+void HMI_Display_Init(void)
+{
     OLED_Clear();
     OLED_Update();
 }
 
-void HMIDisplay_Task_100ms(void)
+/*
+ * Function: HMI_Display_Task_100ms
+ * Call period: 100 ms background task.
+ * ISR: no, because it formats text and may trigger display transport.
+ * Blocking: no at this layer; board transport should be implemented non-blocking.
+ */
+void HMI_Display_Task_100ms(void)
 {
     HMI_Data_t data;
 
-    HMIParam_GetSnapshot(&data);
-
+    HMI_Param_GetData(&data);
     OLED_Clear();
 
-    switch (HMIMenu_GetPage())
+    switch (HMI_Menu_GetPage())
     {
     case HMI_MENU_PAGE_SET_VREF:
-        HMIDisplay_ShowSetFloat("Set Vref", data.vref, "V");
+        HMI_Display_ShowSetValue("Set Vref", data.vref, "V");
         break;
 
     case HMI_MENU_PAGE_SET_IREF:
-        HMIDisplay_ShowSetFloat("Set Iref", data.iref, "A");
+        HMI_Display_ShowSetValue("Set Iref", data.iref, "A");
         break;
 
     case HMI_MENU_PAGE_SET_ENABLE:
-        OLED_ShowString(0u, 0u, "Set Enable");
-        OLED_ShowString(0u, 2u, data.enable_cmd != 0u ? "ON" : "OFF");
-        OLED_ShowString(0u, 5u, "UP ON / DOWN OFF");
+        HMI_Display_ShowEnable(&data);
         break;
 
     case HMI_MENU_PAGE_SET_MODE:
-        OLED_ShowString(0u, 0u, "Set Mode");
-        OLED_ShowInt(0u, 2u, (int32_t)data.mode_cmd);
-        OLED_ShowString(0u, 5u, "UP/DOWN Adjust");
+        HMI_Display_ShowMode(&data);
         break;
 
     case HMI_MENU_PAGE_FAULT:
-        OLED_ShowString(0u, 0u, "Fault");
-        OLED_ShowString(0u, 2u, HMIMenu_GetFaultText(data.fault_code));
-        OLED_ShowInt(0u, 4u, (int32_t)data.fault_code);
+        HMI_Display_ShowFault(&data);
         break;
 
     case HMI_MENU_PAGE_MAIN:
     default:
-        HMIDisplay_ShowMain(&data);
+        HMI_Display_ShowMain(&data);
         break;
     }
 

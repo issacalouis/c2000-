@@ -1,10 +1,11 @@
-/*
- * File: board_i2c.h
- * Description: I2C abstraction used by OLED or other display drivers.
- * Notes: Keep C2000Ware I2C register code inside board_i2c.c.
- */
 #ifndef BOARD_I2C_H
 #define BOARD_I2C_H
+
+/*
+ * File: board_i2c.h
+ * Description: Board-level I2C write abstraction for OLED or other peripherals.
+ * Notes: The HMI layer must not call C2000 I2C registers directly.
+ */
 
 #include <stdint.h>
 
@@ -13,7 +14,7 @@ extern "C" {
 #endif
 
 void BoardI2C_Init(void);
-uint16_t BoardI2C_Write(uint8_t dev_addr, const uint8_t *data, uint16_t len);
+void BoardI2C_Write(uint8_t dev_addr, const uint8_t *data, uint16_t len);
 
 #ifdef __cplusplus
 }

@@ -1,55 +1,44 @@
-# C2000 电源 HMI 工程模板
+# C2000 Power HMI Project
 
-本工程是面向 TI C2000 电源控制项目的可移植 HMI 模板，包含按键扫描、菜单、OLED 显示抽象、参数管理、控制算法接口和低速调度框架。
+这是一个面向 TI C2000 F280015x 系列的电源控制 HMI 工程模板。控制算法主体由 Simulink / Embedded Coder 生成，键盘、OLED、菜单、参数和控制接口由本工程维护。
 
-当前工程没有 Simulink / Embedded Coder 生成的控制算法代码，因此 `generated_control/` 只保留占位说明。后续生成算法代码后，应放入该目录或由外部 CCS 工程引用，HMI 代码不直接修改任何生成文件。
+## 设计原则
 
-## 目录结构
+- 不直接修改 `generated_control` 中的 Simulink 生成文件。
+- 高速控制 ISR 只处理 ADC、控制计算、PWM、保护和反馈写入。
+- 按键扫描、菜单处理、字符串格式化、OLED 刷新只在低速后台任务执行。
+- HMI 通过 `control_if` 中的固定接口与控制算法交换数据。
+- 所有用户设定值在 `app/app_config.h` 中统一限幅。
 
-```text
-app/                主程序调度、工程配置、公共类型
-hmi/                HMI 顶层、菜单、参数、显示页面
-drivers_user/       GPIO/I2C/SPI/OLED/按键等硬件抽象
-control_if/         HMI 与控制算法之间的固定数据接口
-generated_control/  Simulink 生成代码占位目录
-docs/               架构、移植和 Simulink 集成说明
-tests/              PC 侧 mock 测试示例
-```
+## 目录说明
 
-## 核心运行方式
+- `app`: 应用初始化和 1 ms / 10 ms / 100 ms 调度模板。
+- `hmi`: HMI 顶层接口、菜单状态机、参数模型和显示页面。
+- `drivers_user`: GPIO、I2C、SPI、Key、OLED 的可移植驱动层。
+- `control_if`: HMI 与 Simulink 控制算法之间的数据接口。
+- `generated_control`: 放置 Simulink 自动生成代码，手工代码不要改这里。
+- `docs`: 架构、移植、Simulink 集成和控制 ISR 模板。
+- `tests`: 可在 PC 上编译运行的 mock 测试。
 
-高速控制 ISR 只做 ADC、控制 step、PWM 更新、保护判断和接口数据写入。按键扫描、菜单处理和屏幕刷新全部在低速后台任务中执行。
-
-推荐调度周期：
-
-```text
-1 ms   HMI_Task_1ms      同步控制反馈
-10 ms  HMI_Task_10ms     按键扫描、菜单处理、设定值发布
-100 ms HMI_Task_100ms    屏幕刷新
-```
-
-## 数据接口
-
-HMI 到控制算法：
+## 典型调度
 
 ```c
-ControlIF_GetSetpoint(&setpoint);
+APP_Init();
+
+while (1)
+{
+    APP_BackgroundLoop();
+}
 ```
 
-控制算法到 HMI：
+定时器 ISR 每 1 ms 调用：
 
 ```c
-ControlIF_SetFeedback(&feedback);
+APP_TaskScheduler_1ms_ISR();
 ```
 
-HMI 不直接访问 Simulink 模型内部变量，Simulink 生成文件也不需要手动修改。
+控制 ISR 应独立调用 Simulink 生成的 step 函数，并通过 `ControlIF_SetFeedback()` 写入 Vin/Vout/Iout/Duty/Fault。
 
-## 后续移植重点
+## 当前硬件状态
 
-1. 在 `drivers_user/board_gpio.c` 中补充实际按键 GPIO。
-2. 在 `drivers_user/board_i2c.c` 或 `drivers_user/board_spi.c` 中补充屏幕总线驱动。
-3. 在 `drivers_user/oled.c` 中把文本缓冲转换为 SSD1306 页面刷新。
-4. 在控制 ISR 中调用 Simulink step，并通过 `control_if` 交换设定值和反馈值。
-5. 如 HMI 后台和控制 ISR 并发访问多字节数据，在 `control_if/control_interface.c` 中接入临界区宏。
-
-更多细节见 `docs/`。
+底层 C2000Ware GPIO/I2C/SPI 寄存器配置尚未绑定具体原理图，相关位置均用 `TODO(F280015x)` 标注。默认显示目标为 SSD1306 128x64 I2C OLED，当前 OLED 驱动是文本缓存和传输钩子，便于先完成工程集成。

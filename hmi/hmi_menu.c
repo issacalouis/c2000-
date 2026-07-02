@@ -1,16 +1,18 @@
 /*
  * File: hmi_menu.c
- * Description: Small non-blocking menu state machine.
- * Notes: Called from the 10 ms HMI task; never call from the control ISR.
+ * Description: Non-blocking menu state machine for setpoint and status pages.
+ * Notes: Safe to test on PC. It performs no direct GPIO, OLED, or control access.
  */
+
 #include "hmi_menu.h"
-#include "hmi_param.h"
-#include "app_config.h"
+
 #include "app_types.h"
+#include "hmi_param.h"
 
 static HMI_MenuPage_t g_hmi_menu_page;
+static uint16_t g_hmi_menu_edit_index;
 
-static void HMIMenu_NextPage(void)
+static void HMI_Menu_NextPage(void)
 {
     if (g_hmi_menu_page >= HMI_MENU_PAGE_FAULT)
     {
@@ -22,7 +24,7 @@ static void HMIMenu_NextPage(void)
     }
 }
 
-static void HMIMenu_PreviousPage(void)
+static void HMI_Menu_PreviousPage(void)
 {
     if (g_hmi_menu_page == HMI_MENU_PAGE_MAIN)
     {
@@ -34,31 +36,28 @@ static void HMIMenu_PreviousPage(void)
     }
 }
 
-static void HMIMenu_AdjustSelected(float direction)
+static void HMI_Menu_AdjustCurrent(int16_t step)
 {
+    float small_step;
+
+    small_step = (float)step;
+
     switch (g_hmi_menu_page)
     {
     case HMI_MENU_PAGE_SET_VREF:
-        HMIParam_SetVref(HMIParam_GetVref() + (direction * 0.1f));
+        HMI_Param_AdjustVref(0.1f * small_step);
         break;
 
     case HMI_MENU_PAGE_SET_IREF:
-        HMIParam_SetIref(HMIParam_GetIref() + (direction * 0.1f));
+        HMI_Param_AdjustIref(0.1f * small_step);
         break;
 
     case HMI_MENU_PAGE_SET_ENABLE:
-        HMIParam_SetEnableCmd(direction > 0.0f ? APP_ENABLE_ON : APP_ENABLE_OFF);
+        HMI_Param_ToggleEnable();
         break;
 
     case HMI_MENU_PAGE_SET_MODE:
-        if (direction > 0.0f)
-        {
-            HMIParam_SetModeCmd((uint16_t)(HMIParam_GetModeCmd() + 1u));
-        }
-        else if (HMIParam_GetModeCmd() > APP_MODE_MIN)
-        {
-            HMIParam_SetModeCmd((uint16_t)(HMIParam_GetModeCmd() - 1u));
-        }
+        HMI_Param_SetModeCmd((uint16_t)((HMI_Param_GetModeCmd() + 1u) & 0x0003u));
         break;
 
     default:
@@ -66,103 +65,96 @@ static void HMIMenu_AdjustSelected(float direction)
     }
 }
 
-void HMIMenu_Init(void)
+/*
+ * Function: HMI_Menu_Init
+ * Call period: once from HMI_Init().
+ * ISR: no.
+ * Blocking: no.
+ */
+void HMI_Menu_Init(void)
 {
     g_hmi_menu_page = HMI_MENU_PAGE_MAIN;
+    g_hmi_menu_edit_index = 0u;
 }
 
-void HMIMenu_Task_10ms(KeyEvent_t event)
+/*
+ * Function: HMI_Menu_Task_10ms
+ * Call period: after Key_Task_10ms().
+ * ISR: no.
+ * Blocking: no.
+ */
+void HMI_Menu_Task_10ms(KeyEvent_t event)
 {
     switch (event)
     {
     case KEY_EVENT_UP:
-        HMIMenu_AdjustSelected(1.0f);
+        if (g_hmi_menu_page == HMI_MENU_PAGE_MAIN || g_hmi_menu_page == HMI_MENU_PAGE_FAULT)
+        {
+            HMI_Menu_PreviousPage();
+        }
+        else
+        {
+            HMI_Menu_AdjustCurrent(1);
+        }
         break;
 
     case KEY_EVENT_DOWN:
-        HMIMenu_AdjustSelected(-1.0f);
+        if (g_hmi_menu_page == HMI_MENU_PAGE_MAIN || g_hmi_menu_page == HMI_MENU_PAGE_FAULT)
+        {
+            HMI_Menu_NextPage();
+        }
+        else
+        {
+            HMI_Menu_AdjustCurrent(-1);
+        }
+        break;
+
+    case KEY_EVENT_LONG_UP:
+        HMI_Menu_AdjustCurrent(10);
+        break;
+
+    case KEY_EVENT_LONG_DOWN:
+        HMI_Menu_AdjustCurrent(-10);
         break;
 
     case KEY_EVENT_LEFT:
-    case KEY_EVENT_BACK:
-        HMIMenu_PreviousPage();
+        HMI_Menu_PreviousPage();
         break;
 
     case KEY_EVENT_RIGHT:
     case KEY_EVENT_OK:
-        HMIMenu_NextPage();
+        HMI_Menu_NextPage();
+        break;
+
+    case KEY_EVENT_BACK:
+        g_hmi_menu_page = HMI_MENU_PAGE_MAIN;
         break;
 
     case KEY_EVENT_RUN:
-        HMIParam_SetEnableCmd(HMIParam_GetEnableCmd() == APP_ENABLE_OFF);
-        break;
-
-    case KEY_EVENT_LONG_UP:
-        HMIMenu_AdjustSelected(1.0f);
-        HMIMenu_AdjustSelected(1.0f);
-        HMIMenu_AdjustSelected(1.0f);
-        HMIMenu_AdjustSelected(1.0f);
-        HMIMenu_AdjustSelected(1.0f);
-        break;
-
-    case KEY_EVENT_LONG_DOWN:
-        HMIMenu_AdjustSelected(-1.0f);
-        HMIMenu_AdjustSelected(-1.0f);
-        HMIMenu_AdjustSelected(-1.0f);
-        HMIMenu_AdjustSelected(-1.0f);
-        HMIMenu_AdjustSelected(-1.0f);
+    case KEY_EVENT_LONG_RUN:
+        HMI_Param_ToggleEnable();
         break;
 
     case KEY_EVENT_LONG_OK:
         g_hmi_menu_page = HMI_MENU_PAGE_MAIN;
         break;
 
-    case KEY_EVENT_LONG_RUN:
-        HMIParam_SetEnableCmd(APP_ENABLE_OFF);
-        break;
-
-    case KEY_EVENT_NONE:
     default:
         break;
     }
+
+    if (HMI_Param_GetFaultCode() != FAULT_NONE)
+    {
+        g_hmi_menu_page = HMI_MENU_PAGE_FAULT;
+    }
 }
 
-HMI_MenuPage_t HMIMenu_GetPage(void)
+HMI_MenuPage_t HMI_Menu_GetPage(void)
 {
     return g_hmi_menu_page;
 }
 
-const char *HMIMenu_GetFaultText(uint16_t fault_code)
+uint16_t HMI_Menu_GetEditIndex(void)
 {
-    if ((fault_code & FAULT_OVP) != 0u)
-    {
-        return "OVP";
-    }
-
-    if ((fault_code & FAULT_OCP) != 0u)
-    {
-        return "OCP";
-    }
-
-    if ((fault_code & FAULT_OTP) != 0u)
-    {
-        return "OTP";
-    }
-
-    if ((fault_code & FAULT_UVLO) != 0u)
-    {
-        return "UVLO";
-    }
-
-    if ((fault_code & FAULT_ADC) != 0u)
-    {
-        return "ADC Fault";
-    }
-
-    if ((fault_code & FAULT_PWM) != 0u)
-    {
-        return "PWM Fault";
-    }
-
-    return "No Fault";
+    return g_hmi_menu_edit_index;
 }

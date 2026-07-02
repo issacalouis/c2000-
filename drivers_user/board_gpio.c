@@ -1,102 +1,107 @@
 /*
  * File: board_gpio.c
- * Description: Portable GPIO stubs for keys and matrix scanning.
- * Notes: TODO map these functions to the selected C2000 GPIO pins.
+ * Description: Hardware isolation layer for C2000 GPIO key inputs.
+ * Notes: Default implementation is a safe stub. Fill TODOs with F280015x pin
+ *        mapping and C2000Ware GPIO_readPin/GPIO_writePin calls.
  */
+
 #include "board_gpio.h"
-#include "app_config.h"
 
-static uint16_t g_board_key_up = BOARD_KEY_RELEASED;
-static uint16_t g_board_key_down = BOARD_KEY_RELEASED;
-static uint16_t g_board_key_left = BOARD_KEY_RELEASED;
-static uint16_t g_board_key_right = BOARD_KEY_RELEASED;
-static uint16_t g_board_key_ok = BOARD_KEY_RELEASED;
-static uint16_t g_board_key_back = BOARD_KEY_RELEASED;
-static uint16_t g_board_key_run = BOARD_KEY_RELEASED;
-static uint16_t g_board_matrix[4][4];
-static uint16_t g_board_active_row = 0u;
+#define BOARD_KEY_UP_MASK    0x0001u
+#define BOARD_KEY_DOWN_MASK  0x0002u
+#define BOARD_KEY_LEFT_MASK  0x0004u
+#define BOARD_KEY_RIGHT_MASK 0x0008u
+#define BOARD_KEY_OK_MASK    0x0010u
+#define BOARD_KEY_BACK_MASK  0x0020u
+#define BOARD_KEY_RUN_MASK   0x0040u
 
+static uint16_t g_board_gpio_mock_independent_mask;
+static uint16_t g_board_gpio_mock_matrix_mask;
+static uint8_t g_board_gpio_active_matrix_row;
+
+/*
+ * Function: BoardGPIO_Init
+ * Call period: once before key scanning starts.
+ * ISR: no.
+ * Blocking: no.
+ */
 void BoardGPIO_Init(void)
 {
-    /* TODO: Configure target C2000 GPIO direction, pullups, and qualification. */
+    /*
+     * TODO(F280015x): configure independent key GPIOs as inputs with pull-ups,
+     * and configure matrix rows as outputs / columns as inputs.
+     */
+    g_board_gpio_active_matrix_row = 0u;
 }
 
 uint16_t BoardGPIO_ReadKeyUp(void)
 {
-    return g_board_key_up;
+    return (g_board_gpio_mock_independent_mask & BOARD_KEY_UP_MASK) != 0u;
 }
 
 uint16_t BoardGPIO_ReadKeyDown(void)
 {
-    return g_board_key_down;
+    return (g_board_gpio_mock_independent_mask & BOARD_KEY_DOWN_MASK) != 0u;
 }
 
 uint16_t BoardGPIO_ReadKeyLeft(void)
 {
-    return g_board_key_left;
+    return (g_board_gpio_mock_independent_mask & BOARD_KEY_LEFT_MASK) != 0u;
 }
 
 uint16_t BoardGPIO_ReadKeyRight(void)
 {
-    return g_board_key_right;
+    return (g_board_gpio_mock_independent_mask & BOARD_KEY_RIGHT_MASK) != 0u;
 }
 
 uint16_t BoardGPIO_ReadKeyOk(void)
 {
-    return g_board_key_ok;
+    return (g_board_gpio_mock_independent_mask & BOARD_KEY_OK_MASK) != 0u;
 }
 
 uint16_t BoardGPIO_ReadKeyBack(void)
 {
-    return g_board_key_back;
+    return (g_board_gpio_mock_independent_mask & BOARD_KEY_BACK_MASK) != 0u;
 }
 
 uint16_t BoardGPIO_ReadKeyRun(void)
 {
-    return g_board_key_run;
+    return (g_board_gpio_mock_independent_mask & BOARD_KEY_RUN_MASK) != 0u;
 }
 
-void BoardGPIO_SetMatrixRow(uint16_t row, uint16_t active)
+/*
+ * Function: BoardGPIO_SetMatrixRow
+ * Call period: inside Key_Task_10ms().
+ * ISR: no.
+ * Blocking: no; do not add delay here.
+ */
+void BoardGPIO_SetMatrixRow(uint8_t row)
 {
-    if (row < 4u)
+    g_board_gpio_active_matrix_row = row;
+    /* TODO(F280015x): drive selected row active and other rows inactive. */
+}
+
+uint16_t BoardGPIO_ReadMatrixColumn(uint8_t column)
+{
+    uint8_t bit_index;
+
+    bit_index = (uint8_t)((g_board_gpio_active_matrix_row * 4u) + column);
+    if (bit_index >= 16u)
     {
-        g_board_active_row = active != 0u ? row : 0u;
-    }
-}
-
-uint16_t BoardGPIO_ReadMatrixColumn(uint16_t col)
-{
-    if (col >= 4u)
-    {
-        return BOARD_KEY_RELEASED;
+        return 0u;
     }
 
-    return g_board_matrix[g_board_active_row][col];
+    return (g_board_gpio_mock_matrix_mask & (uint16_t)(1u << bit_index)) != 0u;
 }
 
-#if defined(UNIT_TEST)
-void BoardGPIO_MockSetIndependent(uint16_t up,
-                                  uint16_t down,
-                                  uint16_t left,
-                                  uint16_t right,
-                                  uint16_t ok,
-                                  uint16_t back,
-                                  uint16_t run)
+#ifdef UNIT_TEST
+void BoardGPIO_MockSetIndependentMask(uint16_t mask)
 {
-    g_board_key_up = up;
-    g_board_key_down = down;
-    g_board_key_left = left;
-    g_board_key_right = right;
-    g_board_key_ok = ok;
-    g_board_key_back = back;
-    g_board_key_run = run;
+    g_board_gpio_mock_independent_mask = mask;
 }
 
-void BoardGPIO_MockSetMatrix(uint16_t row, uint16_t col, uint16_t pressed)
+void BoardGPIO_MockSetMatrixMask(uint16_t mask)
 {
-    if ((row < 4u) && (col < 4u))
-    {
-        g_board_matrix[row][col] = pressed;
-    }
+    g_board_gpio_mock_matrix_mask = mask;
 }
 #endif

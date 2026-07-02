@@ -1,10 +1,11 @@
-/*
- * File: board_gpio.h
- * Description: GPIO abstraction for keys and matrix keyboard lines.
- * Notes: Replace board_gpio.c with real C2000Ware GPIO access for target boards.
- */
 #ifndef BOARD_GPIO_H
 #define BOARD_GPIO_H
+
+/*
+ * File: board_gpio.h
+ * Description: Board-level GPIO abstraction for keys and matrix keyboard rows.
+ * Notes: Replace the TODO stubs in board_gpio.c with C2000Ware GPIO calls.
+ */
 
 #include <stdint.h>
 
@@ -22,18 +23,12 @@ uint16_t BoardGPIO_ReadKeyOk(void);
 uint16_t BoardGPIO_ReadKeyBack(void);
 uint16_t BoardGPIO_ReadKeyRun(void);
 
-void BoardGPIO_SetMatrixRow(uint16_t row, uint16_t active);
-uint16_t BoardGPIO_ReadMatrixColumn(uint16_t col);
+void BoardGPIO_SetMatrixRow(uint8_t row);
+uint16_t BoardGPIO_ReadMatrixColumn(uint8_t column);
 
-#if defined(UNIT_TEST)
-void BoardGPIO_MockSetIndependent(uint16_t up,
-                                  uint16_t down,
-                                  uint16_t left,
-                                  uint16_t right,
-                                  uint16_t ok,
-                                  uint16_t back,
-                                  uint16_t run);
-void BoardGPIO_MockSetMatrix(uint16_t row, uint16_t col, uint16_t pressed);
+#ifdef UNIT_TEST
+void BoardGPIO_MockSetIndependentMask(uint16_t mask);
+void BoardGPIO_MockSetMatrixMask(uint16_t mask);
 #endif
 
 #ifdef __cplusplus

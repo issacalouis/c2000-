@@ -1,8 +1,13 @@
 /*
  * File: oled_font.c
- * Description: Placeholder font storage.
- * Notes: Replace with actual 6x8/8x16 font tables for a pixel OLED driver.
+ * Description: Minimal font-table placeholder for early project integration.
+ * Notes: Replace with a complete 6x8 ASCII font when implementing real SSD1306
+ *        framebuffer rendering.
  */
+
 #include "oled_font.h"
 
-const uint8_t OLED_Font6x8[1] = { 0u };
+const uint8_t OLED_Font6x8[1][6] =
+{
+    {0x00u, 0x00u, 0x00u, 0x00u, 0x00u, 0x00u}
+};

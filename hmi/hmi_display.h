@@ -1,17 +1,18 @@
-/*
- * File: hmi_display.h
- * Description: Display rendering facade for HMI pages.
- * Notes: Called from the 100 ms HMI task; never call from the control ISR.
- */
 #ifndef HMI_DISPLAY_H
 #define HMI_DISPLAY_H
+
+/*
+ * File: hmi_display.h
+ * Description: HMI display rendering entry points.
+ * Notes: Rendering is intentionally separated from OLED transport code.
+ */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void HMIDisplay_Init(void);
-void HMIDisplay_Task_100ms(void);
+void HMI_Display_Init(void);
+void HMI_Display_Task_100ms(void);
 
 #ifdef __cplusplus
 }

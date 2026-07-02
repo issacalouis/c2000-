@@ -1,13 +1,13 @@
-/*
- * File: hmi_param.h
- * Description: HMI parameter storage and limit helpers.
- * Notes: Menu code updates setpoints here; display code reads snapshots here.
- */
 #ifndef HMI_PARAM_H
 #define HMI_PARAM_H
 
+/*
+ * File: hmi_param.h
+ * Description: HMI parameter storage and range-limited accessors.
+ * Notes: HMI parameters are separated from generated control internals.
+ */
+
 #include <stdint.h>
-#include "control_interface.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,26 +21,34 @@ typedef struct
     float vout;
     float iout;
     float duty;
-
     uint16_t enable_cmd;
     uint16_t mode_cmd;
     uint16_t run_state;
     uint16_t fault_code;
 } HMI_Data_t;
 
-void HMIParam_Init(void);
-void HMIParam_GetSnapshot(HMI_Data_t *data);
-void HMIParam_SetVref(float value);
-void HMIParam_SetIref(float value);
-void HMIParam_SetEnableCmd(uint16_t value);
-void HMIParam_SetModeCmd(uint16_t value);
-void HMIParam_SetFeedback(const Control_Feedback_t *feedback);
-void HMIParam_ToSetpoint(Control_Setpoint_t *setpoint);
+void HMI_Param_Init(void);
+void HMI_Param_GetData(HMI_Data_t *data);
 
-float HMIParam_GetVref(void);
-float HMIParam_GetIref(void);
-uint16_t HMIParam_GetEnableCmd(void);
-uint16_t HMIParam_GetModeCmd(void);
+float HMI_Param_GetVref(void);
+float HMI_Param_GetIref(void);
+uint16_t HMI_Param_GetEnableCmd(void);
+uint16_t HMI_Param_GetModeCmd(void);
+uint16_t HMI_Param_GetFaultCode(void);
+
+void HMI_Param_SetVref(float value);
+void HMI_Param_SetIref(float value);
+void HMI_Param_AdjustVref(float delta);
+void HMI_Param_AdjustIref(float delta);
+void HMI_Param_ToggleEnable(void);
+void HMI_Param_SetModeCmd(uint16_t mode);
+
+void HMI_Param_SetVin(float value);
+void HMI_Param_SetVout(float value);
+void HMI_Param_SetIout(float value);
+void HMI_Param_SetDuty(float value);
+void HMI_Param_SetFaultCode(uint16_t fault_code);
+void HMI_Param_SetRunState(uint16_t run_state);
 
 #ifdef __cplusplus
 }

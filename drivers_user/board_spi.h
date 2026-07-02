@@ -1,10 +1,11 @@
-/*
- * File: board_spi.h
- * Description: SPI abstraction for OLED/TFT ports.
- * Notes: Use this when migrating from I2C OLED to SPI OLED/TFT screens.
- */
 #ifndef BOARD_SPI_H
 #define BOARD_SPI_H
+
+/*
+ * File: board_spi.h
+ * Description: Board-level SPI abstraction reserved for TFT/OLED SPI variants.
+ * Notes: Current default display is SSD1306 over I2C.
+ */
 
 #include <stdint.h>
 
@@ -13,7 +14,7 @@ extern "C" {
 #endif
 
 void BoardSPI_Init(void);
-uint16_t BoardSPI_Write(const uint8_t *data, uint16_t len);
+void BoardSPI_Write(const uint8_t *data, uint16_t len);
 
 #ifdef __cplusplus
 }
