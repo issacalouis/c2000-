@@ -2,7 +2,7 @@
 
 ## 1. 引脚确认
 
-根据原理图确认独立按键或矩阵键盘的 GPIO 编号、上下拉方式和有效电平，然后修改 `drivers_user/board_gpio.c` 中的 `TODO(F280015x)`。
+根据原理图确认矩阵键盘的行、列 GPIO 编号、上下拉方式和有效电平，然后修改 `drivers_user/board_gpio.c` 中的 `TODO(F280015x)`。
 
 ## 2. I2C OLED
 

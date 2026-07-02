@@ -78,12 +78,12 @@ void HMI_Menu_Init(void)
 }
 
 /*
- * Function: HMI_Menu_Task_10ms
- * Call period: after Key_Task_10ms().
+ * Function: HMI_Menu_Task_20ms
+ * Call period: every 20 ms after one or more Key_Task_10ms() scans.
  * ISR: no.
  * Blocking: no.
  */
-void HMI_Menu_Task_10ms(KeyEvent_t event)
+void HMI_Menu_Task_20ms(KeyEvent_t event)
 {
     switch (event)
     {

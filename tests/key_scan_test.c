@@ -14,7 +14,7 @@ static void scan_ticks(uint16_t mask, unsigned ticks)
 {
     unsigned i;
 
-    BoardGPIO_MockSetIndependentMask(mask);
+    BoardGPIO_MockSetMatrixMask(mask);
     for (i = 0u; i < ticks; i++)
     {
         Key_Task_10ms();

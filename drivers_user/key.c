@@ -1,6 +1,6 @@
 /*
  * File: key.c
- * Description: Debounced short/long press event scanner for independent keys or matrix keypad.
+ * Description: Debounced short/long press event scanner for the matrix keypad.
  * Notes: Call every 10 ms from the background scheduler. No blocking delay is used.
  */
 
@@ -91,6 +91,7 @@ static KeyEvent_t Key_LongEventFromMask(uint16_t mask)
     }
 }
 
+#if (KEY_MODE == KEY_MODE_INDEPENDENT)
 static uint16_t Key_ReadIndependentMask(void)
 {
     uint16_t mask;
@@ -106,6 +107,7 @@ static uint16_t Key_ReadIndependentMask(void)
 
     return mask;
 }
+#endif
 
 #if (KEY_MODE == KEY_MODE_MATRIX)
 static uint16_t Key_ReadMatrixMask(void)

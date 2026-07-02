@@ -12,7 +12,7 @@
 
 ## 目录说明
 
-- `app`: 应用初始化和 1 ms / 10 ms / 100 ms 调度模板。
+- `app`: 应用初始化和 1 ms / 10 ms / 20 ms / 100 ms 调度模板。
 - `hmi`: HMI 顶层接口、菜单状态机、参数模型和显示页面。
 - `drivers_user`: GPIO、I2C、SPI、Key、OLED 的可移植驱动层。
 - `control_if`: HMI 与 Simulink 控制算法之间的数据接口。
@@ -41,4 +41,4 @@ APP_TaskScheduler_1ms_ISR();
 
 ## 当前硬件状态
 
-底层 C2000Ware GPIO/I2C/SPI 寄存器配置尚未绑定具体原理图，相关位置均用 `TODO(F280015x)` 标注。默认显示目标为 SSD1306 128x64 I2C OLED，当前 OLED 驱动是文本缓存和传输钩子，便于先完成工程集成。
+底层 C2000Ware GPIO/I2C/SPI 寄存器配置尚未绑定具体原理图，相关位置均用 `TODO(F280015x)` 标注。默认输入目标为矩阵键盘，默认显示目标为 SSD1306 128x64 I2C OLED；当前 OLED 驱动是文本缓存和传输钩子，便于先完成工程集成。

@@ -8,6 +8,7 @@
 #include "hmi.h"
 
 #include "control_interface.h"
+#include "app_config.h"
 #include "hmi_display.h"
 #include "hmi_menu.h"
 #include "hmi_param.h"
@@ -73,9 +74,25 @@ void HMI_Task_1ms(void)
  */
 void HMI_Task_10ms(void)
 {
+    static uint16_t menu_elapsed_ms = 0u;
+    static KeyEvent_t pending_event = KEY_EVENT_NONE;
+    KeyEvent_t event;
+
     Key_Task_10ms();
-    HMI_Menu_Task_10ms(Key_GetEvent());
-    HMI_PushSetpointToControlIF();
+    event = Key_GetEvent();
+    if (event != KEY_EVENT_NONE)
+    {
+        pending_event = event;
+    }
+
+    menu_elapsed_ms += APP_KEY_TASK_10MS;
+    if (menu_elapsed_ms >= APP_MENU_TASK_20MS)
+    {
+        menu_elapsed_ms = 0u;
+        HMI_Menu_Task_20ms(pending_event);
+        pending_event = KEY_EVENT_NONE;
+        HMI_PushSetpointToControlIF();
+    }
 }
 
 /*

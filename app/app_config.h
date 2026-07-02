@@ -19,6 +19,7 @@
 
 #define APP_HMI_TASK_1MS        1u
 #define APP_KEY_TASK_10MS       10u
+#define APP_MENU_TASK_20MS      20u
 #define APP_DISPLAY_TASK_100MS  100u
 
 /* Long press timing is counted in Key_Task_10ms() ticks. */

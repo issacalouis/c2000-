@@ -13,7 +13,7 @@
 #define KEY_MODE_MATRIX      1
 
 #ifndef KEY_MODE
-#define KEY_MODE KEY_MODE_INDEPENDENT
+#define KEY_MODE KEY_MODE_MATRIX
 #endif
 
 #define KEY_MASK_UP    0x0001u

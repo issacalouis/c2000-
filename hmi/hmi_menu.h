@@ -26,7 +26,7 @@ typedef enum
 } HMI_MenuPage_t;
 
 void HMI_Menu_Init(void);
-void HMI_Menu_Task_10ms(KeyEvent_t event);
+void HMI_Menu_Task_20ms(KeyEvent_t event);
 HMI_MenuPage_t HMI_Menu_GetPage(void);
 uint16_t HMI_Menu_GetEditIndex(void);
 
