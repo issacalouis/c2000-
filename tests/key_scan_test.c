@@ -33,7 +33,7 @@ int main(void)
     scan_ticks(0u, 4u);
     assert(Key_GetEvent() == KEY_EVENT_UP);
 
-    scan_ticks(TEST_KEY_RUN_MATRIX_MASK, 90u);
+    scan_ticks(TEST_KEY_RUN_MATRIX_MASK, 110u);
     assert(Key_GetEvent() == KEY_EVENT_LONG_RUN);
     scan_ticks(0u, 4u);
     assert(Key_GetEvent() == KEY_EVENT_NONE);

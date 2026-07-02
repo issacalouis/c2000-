@@ -5,7 +5,7 @@
  * 文件: control_interface.h
  * 说明: HMI 代码与生成控制代码之间的数据交换 API。
  * 备注: Simulink 生成文件应调用本 API，而不是直接访问 HMI 内部数据。
- *       该实现为非阻塞方式。
+ *       该实现为非阻塞方式，并通过双缓冲返回一致快照。
  */
 
 #include <stdint.h>

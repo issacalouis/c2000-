@@ -4,7 +4,7 @@
 
 推荐让 Simulink / Embedded Coder 只生成控制算法源码，CCS 工程统一编译 C2000Ware、生成代码、`app/`、`hmi/`、`drivers_user/` 和 `control_if/`。
 
-HMI 与控制算法之间只通过 `control_if` 交换数据：
+HMI 与控制算法之间只通过 `control_if` 交换数据；当前 `control_if` 内部已经使用双缓冲和序列号校验来保证多字段快照一致性：
 
 ```c
 ControlIF_GetSetpoint(&setpoint);

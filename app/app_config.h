@@ -23,6 +23,6 @@
 #define APP_DISPLAY_TASK_100MS  100u
 
 /* 长按计时以 Key_Task_10ms() 的调用节拍为单位。 */
-#define APP_KEY_LONG_PRESS_TICKS 80u
+#define APP_KEY_LONG_PRESS_TICKS 100u
 
 #endif
